@@ -22,4 +22,7 @@ fclean: clean
 
 re: fclean all
 
+t:
+	./webserv
+
 .PHONY: clean fclean re all
