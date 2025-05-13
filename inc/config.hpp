@@ -8,9 +8,11 @@ class config
 	private:
 		std::string	listen;
 		int			port;
-		std::string	CGI_path
-		std::string	html_path;
-		error_path
+		std::string	cgiPath;
+		std::string	htmlPath;
+		std::string	errPpath;
+
+
 };
 
 #endif
