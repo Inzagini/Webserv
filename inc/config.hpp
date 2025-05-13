@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <fstream>
 /*
 	error to cover 400, 403, 404, 405, 413
 					500, 502, 503
@@ -27,7 +28,7 @@ class config
 		std::vector<LocationConfig>	locations;
 
 	public:
-		void							load(std::string filename);
+		int							load(std::string filename);
 		void							configParser();
 		std::vector<LocationConfig>&	getLocations() const;
 };
