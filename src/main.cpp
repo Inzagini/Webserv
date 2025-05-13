@@ -7,6 +7,8 @@
 #include <netinet/in.h> // For sockaddr_in, htons, etc.
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <arpa/inet.h>
 
 int main() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -14,7 +16,7 @@ int main() {
     sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(8080);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     bind(server_fd, (sockaddr*)&addr, sizeof(addr));
     listen(server_fd, 10);
