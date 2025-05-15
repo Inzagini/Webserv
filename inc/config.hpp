@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <fstream>
+#include <cstdlib>
+#include <iostream>
 /*
 	error to cover 400, 403, 404, 405, 413
 					500, 502, 503

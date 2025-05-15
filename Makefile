@@ -3,7 +3,7 @@ NAME:= webserv
 CFLAGS:= -std=c++98 -Wall -Werror -Wextra -g
 INCLUDES:= inc
 SRC_DIR:= src
-SRCS:= main.cpp
+SRCS:= main.cpp config.cpp
 OBJS = $(SRCS:%.cpp=$(SRC_DIR)/%.o)
 
 all: $(NAME)
