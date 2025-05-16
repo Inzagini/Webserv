@@ -21,7 +21,7 @@ struct LocationConfig
 	std::string	upload_store;
 };
 
-class config
+class serverConfig
 {
 	private:
 		std::string					listen;
@@ -33,6 +33,11 @@ class config
 		int							load(std::string filename);
 		void							configParser();
 		std::vector<LocationConfig>&	getLocations() const;
+
+		// int	serverblock(std::string content);
+		std::string trim(const std::string& s);
+		// std::vector<std::string> serverConfig::tokenize(const std::string& line);
+		// void parseServerBlock(std::istream& in, serverConfig& server);
 };
 
 #endif
