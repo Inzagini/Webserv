@@ -1,6 +1,6 @@
 CC:= c++
 NAME:= webserv
-CFLAGS:= -std=c++98 -Wall -Werror -Wextra -g
+CFLAGS:= -std=c++98  -g
 INCLUDES:= inc
 SRC_DIR:= src
 SRCS:= main.cpp config.cpp
