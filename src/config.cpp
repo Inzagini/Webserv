@@ -5,15 +5,6 @@
 	find server block and parse
 */
 
-//will be deleted
-void printTokens(const std::vector<std::string>& tokens) {
-	std::cout << "[Tokens]" << std::endl;
-    for (std::vector<std::string>::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
-        std::cout << *it << std::endl;
-    }
-	std::cout << std::endl;
-}
-
 /*
  trim with spaces in the beginning and the end of server block
 */
@@ -37,7 +28,7 @@ std::vector<std::string> serverConfig::tokenize(const std::string &line) {
 		tokens.push_back(token);
 	}
 
-	printTokens(tokens);
+	// printTokens(tokens);
 	return tokens;
 }
 
@@ -84,7 +75,9 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 
 		if (tokens[0] == "location")
 		{
-
+			LocationConfig loc;
+			loc.path = tokens[1];
+			parseLocationBlock(file, loc);
 		}
 		else if (tokens[0] == "listen")
 		{
@@ -115,7 +108,7 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 	return EXIT_SUCCESS;
 }
 
-int	serverConfig::parseLocationBlock(std::istream &file, serverConfig &loc)
+int	serverConfig::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
 	while (std::getline(file, line)){
@@ -123,6 +116,8 @@ int	serverConfig::parseLocationBlock(std::istream &file, serverConfig &loc)
 		if (line == "}") break;
 
 		std::vector<std::string> tokens = tokenize(line);
+		if (tokens.empty()) continue;
+		printTokens(tokens);
 	}
 	return EXIT_SUCCESS;
 }

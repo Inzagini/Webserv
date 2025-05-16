@@ -42,8 +42,9 @@ class serverConfig
 		std::vector<std::string> 		tokenize(const std::string& line);
 
 		int	parseServerBlock(std::istream& file, serverConfig &server);
-		int	parseLocationBlock(std::istream &file, serverConfig &server);
+		int	parseLocationBlock(std::istream &file, LocationConfig &loc);
 
 };
 
+void printTokens(const std::vector<std::string>& tokens); //to delete
 #endif
