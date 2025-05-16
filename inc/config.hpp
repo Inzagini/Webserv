@@ -15,9 +15,8 @@
 
 struct LocationConfig
 {
-	std::string	try_file;
 	std::string	path;
-	std::string	cgiTrue;
+	std::vector<std::string>	allow_method;
 	std::string	cgiPath;
 	std::string	upload_store;
 };
@@ -36,7 +35,6 @@ class serverConfig
 
 	public:
 		int		load(std::string filename);
-		void	configParser();
 
 		std::string				 		trim(const std::string& s);
 		std::vector<std::string> 		tokenize(const std::string& line);

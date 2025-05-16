@@ -52,11 +52,8 @@ int	serverConfig::load(std::string filename)
 			std::cout << "found server block" << std::endl;
 			serverConfig server;
 			parseServerBlock(file, server);
-
-			// servers.push_back(server);
 		}
 	}
-
 	return EXIT_SUCCESS;
 }
 
@@ -78,6 +75,7 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 			LocationConfig loc;
 			loc.path = tokens[1];
 			parseLocationBlock(file, loc);
+			server.locations.push_back(loc);
 		}
 		else if (tokens[0] == "listen")
 		{
@@ -102,12 +100,17 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 			int code = std::atoi(tokens[1].c_str());
 			server.errorPages[code] = tokens[2];
 		}
+		else {
+			std::cerr << "Unknow key: " << tokens[0] << std::endl;
+			return EXIT_FAILURE;
+		}
 	}
-
-
 	return EXIT_SUCCESS;
 }
 
+/*
+	parse location blocks need checks for tokens
+*/
 int	serverConfig::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
@@ -117,7 +120,23 @@ int	serverConfig::parseLocationBlock(std::istream &file, LocationConfig &loc)
 
 		std::vector<std::string> tokens = tokenize(line);
 		if (tokens.empty()) continue;
-		printTokens(tokens);
+
+		if (tokens[0] == "allow_method"){
+			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
+				loc.allow_method.push_back(*it);
+		}
+		else if (tokens[0] == "upload_store"){
+			loc.upload_store = tokens[1];
+		}
+		else if (tokens[0] == "cgi_pass"){
+			loc.cgiPath == tokens[1];
+		}
+		else{
+			std::cerr << "Unknow key: " << tokens[0] << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		// printTokens(tokens);
 	}
 	return EXIT_SUCCESS;
 }
