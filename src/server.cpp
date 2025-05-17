@@ -1,6 +1,9 @@
 #include "config.hpp"
 #include "server.hpp"
 
+/*
+	setup the socket and binding without the check yet
+*/
 int	setSocket(ServerConfig &server)
 {
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,6 +26,10 @@ int	setSocket(ServerConfig &server)
 	return server_fd;
 }
 
+/*
+	handle connection and call the request parsing
+	depend on result of request parse then server the correct webpage
+*/
 int	connectionHandle(int server_fd)
 {
 	char	buffer[4096];

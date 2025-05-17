@@ -23,13 +23,12 @@ std::vector<std::string> Config::tokenize(const std::string &line) {
 		tokens.push_back(token);
 	}
 
-	// printTokens(tokens);
 	return tokens;
 }
 
 /*
 	load the entire file to the string.
-	find server block and parse
+	find server block and parse then save to the array of servers
 */
 int	Config::load(std::string filename)
 {
@@ -86,15 +85,12 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 			server.listen_ip = tokens[1].substr(0, colon);
 			server.listen_port = std::atoi(tokens[1].substr(colon + 1).c_str());
 		}
-		else if (tokens[0] == "server_name" && tokens.size() > 1){
+		else if (tokens[0] == "server_name" && tokens.size() > 1)
 			server.server_name = tokens[1];
-		}
-		else if (tokens[0] == "root" && tokens.size() > 1){
+		else if (tokens[0] == "root" && tokens.size() > 1)
 			server.root = tokens[1];
-		}
-		else if (tokens[0] == "index" && tokens.size() > 1){
+		else if (tokens[0] == "index" && tokens.size() > 1)
 			server.index = tokens[1];
-		}
 		else if (tokens[0] == "error_page" && tokens.size() > 1){
 			int code = std::atoi(tokens[1].c_str());
 			server.errorPages[code] = tokens[2];
@@ -113,24 +109,22 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
-	while (std::getline(file, line)){
+	while (std::getline(file, line)) {
 		line = trim(line);
 		if (line == "}") break;
 
 		std::vector<std::string> tokens = tokenize(line);
 		if (tokens.empty()) continue;
 
-		if (tokens[0] == "allow_method"){
+		if (tokens[0] == "allow_method") {
 			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
 				loc.allow_method.push_back(*it);
 		}
-		else if (tokens[0] == "upload_store" && tokens.size() > 1){
+		else if (tokens[0] == "upload_store" && tokens.size() > 1)
 			loc.upload_store = tokens[1];
-		}
-		else if (tokens[0] == "cgi_pass" && tokens.size() > 1){
+		else if (tokens[0] == "cgi_pass" && tokens.size() > 1)
 			loc.cgiPath == tokens[1];
-		}
-		else{
+		else {
 			std::cerr << "Unknow key: " << tokens[0] << std::endl;
 			return EXIT_FAILURE;
 		}
