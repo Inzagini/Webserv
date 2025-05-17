@@ -1,14 +1,9 @@
 #include "config.hpp"
 
 /*
-	load the entire file to the string.
-	find server block and parse
-*/
-
-/*
  trim with spaces in the beginning and the end of server block
 */
-std::string serverConfig::trim(const std::string& s)
+std::string Config::trim(const std::string& s)
 {
 	size_t start = s.find_first_not_of(" \t\r\n");
 	size_t end = s.find_last_not_of(" \t\r\n");
@@ -18,7 +13,7 @@ std::string serverConfig::trim(const std::string& s)
 		return s.substr(start, end - start + 1);
 }
 
-std::vector<std::string> serverConfig::tokenize(const std::string &line) {
+std::vector<std::string> Config::tokenize(const std::string &line) {
 	std::istringstream iss(line);
 	std::string token;
 	std::vector<std::string> tokens;
@@ -32,7 +27,11 @@ std::vector<std::string> serverConfig::tokenize(const std::string &line) {
 	return tokens;
 }
 
-int	serverConfig::load(std::string filename)
+/*
+	load the entire file to the string.
+	find server block and parse
+*/
+int	Config::load(std::string filename)
 {
 	std::ifstream file(filename.c_str());
 	if (!file) {
@@ -49,8 +48,9 @@ int	serverConfig::load(std::string filename)
 
 		if (line == "server {")
 		{
-			serverConfig server;
+			ServerConfig server;
 			parseServerBlock(file, server);
+			servers.push_back(server);
 		}
 	}
 	return EXIT_SUCCESS;
@@ -59,7 +59,7 @@ int	serverConfig::load(std::string filename)
 /*
 	parser server block current follow rigid structure
 */
-int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
+int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 {
 	std::string line;
 	while (std::getline(file, line)) {
@@ -83,8 +83,8 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 				std::cerr << "Missing ':' in " << tokens[1] << std::endl;
 				return EXIT_FAILURE;
 			}
-			server.ip = tokens[1].substr(0, colon);
-			server.port = std::atoi(tokens[1].substr(colon + 1).c_str());
+			server.listen_ip = tokens[1].substr(0, colon);
+			server.listen_port = std::atoi(tokens[1].substr(colon + 1).c_str());
 		}
 		else if (tokens[0] == "server_name" && tokens.size() > 1){
 			server.server_name = tokens[1];
@@ -110,7 +110,7 @@ int	serverConfig::parseServerBlock(std::istream &file, serverConfig &server)
 /*
 	parse location blocks need checks for tokens
 */
-int	serverConfig::parseLocationBlock(std::istream &file, LocationConfig &loc)
+int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
 	while (std::getline(file, line)){

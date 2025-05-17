@@ -21,25 +21,32 @@ struct LocationConfig
 	std::string	upload_store;
 };
 
-class serverConfig
+struct ServerConfig
+{
+	std::string					listen_ip;
+	std::string					listen_port;
+	std::string					server_name;
+	std::string					root;
+	std::string					index;
+	std::map<int, std::string>	errorPages;
+	std::vector<LocationConfig>	locations;
+};
+
+class Config
 {
 	private:
-		std::string					listen;
-		std::string					ip;
-		int							port;
-		std::string					server_name;
-		std::string					root;
-		std::string					index;
-		std::map<int, std::string>	errorPages;
-		std::vector<LocationConfig>	locations;
+		std::vector<ServerConfig> servers;
 
 	public:
-		int		load(std::string filename);
+		int				load(std::string filename);
+		std::vector<ServerConfig> &getServer() {
+			return servers;
+		}
 
+	private:
 		std::string				 		trim(const std::string& s);
 		std::vector<std::string> 		tokenize(const std::string& line);
-
-		int	parseServerBlock(std::istream& file, serverConfig &server);
+		int	parseServerBlock(std::istream& file, ServerConfig &server);
 		int	parseLocationBlock(std::istream &file, LocationConfig &loc);
 
 };
