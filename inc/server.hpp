@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "config.hpp"
 
-int	setSocket(Config &server);
+int	setSocket(ServerConfig &server);
 int	connectionHandle(int server_id);
 
 #endif

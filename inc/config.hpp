@@ -24,7 +24,7 @@ struct LocationConfig
 struct ServerConfig
 {
 	std::string					listen_ip;
-	std::string					listen_port;
+	int							listen_port;
 	std::string					server_name;
 	std::string					root;
 	std::string					index;
