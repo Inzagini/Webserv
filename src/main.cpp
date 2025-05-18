@@ -1,6 +1,6 @@
 #include "config.hpp"
 #include "server.hpp"
-
+#include "request.hpp"
 
 int main ()
 {
@@ -8,7 +8,8 @@ int main ()
 	std::string filename = std::string("./conf.d/default.conf");
 	conf.load(filename);
 
-	int server_id = setSocket(conf.getServer()[0]);
-	connectionHandle(server_id);
+	// int server_id = setSocket(conf.getServer()[0]);
+	// connectionHandle(server_id);
+
 	return EXIT_SUCCESS;
 }

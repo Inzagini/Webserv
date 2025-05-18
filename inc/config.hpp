@@ -44,12 +44,12 @@ class Config
 		}
 
 	private:
-		std::string				 		trim(const std::string& s);
-		std::vector<std::string> 		tokenize(const std::string& line);
+		std::vector<std::string> 		tokenize(const std::string& line, char delim);
 		int	parseServerBlock(std::istream& file, ServerConfig &server);
 		int	parseLocationBlock(std::istream &file, LocationConfig &loc);
 
 };
 
+std::string				 		trim(const std::string& s);
 void printTokens(const std::vector<std::string>& tokens); //to delete
 #endif

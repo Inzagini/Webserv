@@ -3,7 +3,7 @@
 /*
  trim with spaces in the beginning and the end of server block
 */
-std::string Config::trim(const std::string& s)
+std::string trim(const std::string& s)
 {
 	size_t start = s.find_first_not_of(" \t\r\n");
 	size_t end = s.find_last_not_of(" \t\r\n");
@@ -13,12 +13,13 @@ std::string Config::trim(const std::string& s)
 		return s.substr(start, end - start + 1);
 }
 
-std::vector<std::string> Config::tokenize(const std::string &line) {
+std::vector<std::string> Config::tokenize(const std::string &line, char delim) {
 	std::istringstream iss(line);
 	std::string token;
 	std::vector<std::string> tokens;
+
 	while (iss >> token) {
-		if (!token.empty() && token[token.size() - 1] == ';')
+		if (!token.empty() && token[token.size() - 1] == delim)
 			token.erase(token.size() - 1);
 		tokens.push_back(token);
 	}
@@ -65,7 +66,7 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 		line = trim(line);
 		if (line == "}") break;
 
-		std::vector<std::string> tokens = tokenize(line);
+		std::vector<std::string> tokens = tokenize(line, ';');
 		if (tokens.empty()) continue;
 
 		if (tokens[0] == "location" && tokens.size() > 1)
@@ -113,7 +114,7 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 		line = trim(line);
 		if (line == "}") break;
 
-		std::vector<std::string> tokens = tokenize(line);
+		std::vector<std::string> tokens = tokenize(line, ';');
 		if (tokens.empty()) continue;
 
 		if (tokens[0] == "allow_method") {

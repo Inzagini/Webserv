@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include "server.hpp"
+#include "request.hpp"
 
 /*
 	setup the socket and binding without the check yet
@@ -43,6 +44,8 @@ int	connectionHandle(int server_fd)
 		if (bytes_read > 0)
 		{
 			std::cout << "[Request] \n" << buffer << std::endl;
+
+			HttpRequest req = parseHttpRequest(buffer);
 
 			//static text for now need a function to parse the requrest and then serve the correct gtml page
 			std::string body = "<html><body><h1>Hello from C++ Web Server</h1></body></html>";
