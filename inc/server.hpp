@@ -9,6 +9,6 @@
 #include "config.hpp"
 
 int	setSocket(ServerConfig &server);
-int	connectionHandle(int server_id);
+int	connectionHandle(ServerConfig &server);
 
 #endif

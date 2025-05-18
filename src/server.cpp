@@ -31,9 +31,10 @@ int	setSocket(ServerConfig &server)
 	handle connection and call the request parsing
 	depend on result of request parse then server the correct webpage
 */
-int	connectionHandle(int server_fd)
+int	connectionHandle(ServerConfig &server)
 {
 	char	buffer[4096];
+	int		server_fd = setSocket(server);
 	std::cout << "[Listening]" << std::endl;
 	while (true){
 		int client_fd = accept(server_fd, NULL, NULL);
@@ -46,20 +47,7 @@ int	connectionHandle(int server_fd)
 			std::cout << "[Request] \n" << buffer << std::endl;
 
 			HttpRequest req = parseHttpRequest(buffer);
-
-			//static text for now need a function to parse the requrest and then serve the correct gtml page
-			// std::string body = "<html><body><h1>Hello from C++ Web Server</h1></body></html>";
-            // std::ostringstream response;
-            // response << "HTTP/1.1 200 OK\r\n";
-            // response << "Content-Type: text/html\r\n";
-            // response << "Content-Length: " << body.length() << "\r\n";
-            // response << "Connection: close\r\n";
-            // response << "\r\n";
-            // response << body;
-
-            // std::string full_response = response.str();
-			std::string	rootPath = "/app/html";
-			std::string full_response = serveFileRequest(client_fd, req, rootPath);
+			std::string full_response = serveFileRequest(client_fd, req, server.root);
 			send(client_fd, full_response.c_str(), full_response.length(), 0);
 		}
 		close(client_fd);
