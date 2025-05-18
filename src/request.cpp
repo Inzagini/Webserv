@@ -4,7 +4,6 @@
 HttpRequest parseHttpRequest(char *rawInput)
 {
 	HttpRequest req;
-
 	std::istringstream stream(rawInput);
 	std::string line;
 
@@ -35,6 +34,38 @@ HttpRequest parseHttpRequest(char *rawInput)
 		req.body = buffer;
 		delete[] buffer;
 	}
-
 	return req;
+}
+
+/*
+	rootPath is the /app
+	need Method check and if it is allowed
+	maybe later split to different method then call dedicated function
+*/
+std::string	serveFileRequest(int client_fd, const HttpRequest &req, const std::string &rootPath){
+
+	std::string	filePath = "." + rootPath + req.path;
+
+	if (req.path == "/")
+		filePath += "index.html";
+
+	std::ifstream	fileContent(filePath.c_str());
+	if (!fileContent){
+		//404 not found
+	}
+
+	std::ostringstream	body;
+	body << fileContent.rdbuf();
+	std::string bodyStr = body.str();
+	fileContent.close();
+
+	//need dedicated respond and header builder
+	std::ostringstream	response;
+	response << "HTTP/1.1 200 OK\r\n"
+		<< "Content-Length: " << bodyStr.size() << "\r\n"
+		<< "Content-Type: text/html\r\n"
+		<< "\r\n"
+		<< bodyStr;
+
+	return response.str();
 }

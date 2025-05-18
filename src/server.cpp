@@ -48,16 +48,18 @@ int	connectionHandle(int server_fd)
 			HttpRequest req = parseHttpRequest(buffer);
 
 			//static text for now need a function to parse the requrest and then serve the correct gtml page
-			std::string body = "<html><body><h1>Hello from C++ Web Server</h1></body></html>";
-            std::ostringstream response;
-            response << "HTTP/1.1 200 OK\r\n";
-            response << "Content-Type: text/html\r\n";
-            response << "Content-Length: " << body.length() << "\r\n";
-            response << "Connection: close\r\n";
-            response << "\r\n";
-            response << body;
+			// std::string body = "<html><body><h1>Hello from C++ Web Server</h1></body></html>";
+            // std::ostringstream response;
+            // response << "HTTP/1.1 200 OK\r\n";
+            // response << "Content-Type: text/html\r\n";
+            // response << "Content-Length: " << body.length() << "\r\n";
+            // response << "Connection: close\r\n";
+            // response << "\r\n";
+            // response << body;
 
-            std::string full_response = response.str();
+            // std::string full_response = response.str();
+			std::string	rootPath = "/app/html";
+			std::string full_response = serveFileRequest(client_fd, req, rootPath);
 			send(client_fd, full_response.c_str(), full_response.length(), 0);
 		}
 		close(client_fd);

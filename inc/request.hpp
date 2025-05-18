@@ -14,4 +14,6 @@ struct HttpRequest {
 
 HttpRequest parseHttpRequest(char *rawInput);
 void printHttpRequest(const HttpRequest& req);
+std::string	serveFileRequest(int client_fd, const HttpRequest &req, const std::string &rootPath);
+
 #endif
