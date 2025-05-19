@@ -1,6 +1,7 @@
 #include "config.hpp"
 #include "server.hpp"
 #include "request.hpp"
+#include "response.hpp"
 
 /*
 	setup the socket and binding without the check yet
@@ -76,7 +77,7 @@ int	Server::connectionHandle(ServerConfig &server)
 						buffer[bytesRead] = 0;
 						std::cout << "[Request from client]\n" << buffer << "\n";
 						HttpRequest req = parseHttpRequest(buffer);
-						std::string full_response = serveFileRequest(fd, req, server);
+						std::string full_response = handleGet(req, server);
 						send(fd, full_response.c_str(), full_response.length(), 0);
 					}
 					else{

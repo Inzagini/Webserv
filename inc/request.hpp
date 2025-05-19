@@ -16,6 +16,6 @@ struct HttpRequest {
 
 void printHttpRequest(const HttpRequest& req);
 HttpRequest parseHttpRequest(char *rawInput);
-std::string	serveFileRequest(int client_fd, const HttpRequest &req, const ServerConfig &server);
 std::string	ErrorContent(ServerConfig server, int errorCode);
+
 #endif

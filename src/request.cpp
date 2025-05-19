@@ -1,18 +1,23 @@
 #include "request.hpp"
 #include "config.hpp"
+#include "response.hpp"
 
+/*
+	parse the request to 3 part each seperated by empty line
+	requeset
+	headers
+	body
+*/
 HttpRequest parseHttpRequest(char *rawInput)
 {
 	HttpRequest req;
 	std::istringstream stream(rawInput);
 	std::string line;
 
-	//request
 	std::getline(stream, line);
 	std::istringstream requestLine(line);
 	requestLine >> req.method >> req.path >> req.version;
 
-	//header
 	while (std::getline(stream, line)){
 		if (!line.empty() && line[line.size() - 1] == '\r')
 			line.erase(line.size() - 1);
@@ -36,39 +41,24 @@ HttpRequest parseHttpRequest(char *rawInput)
 	return req;
 }
 
+std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
+{
+	std::string	bodyStr;
+
+	if (req.method == "GET"){
+		return handleGet(req, server);
+	}
+	else
+		return methodNotAllowedResponse();
+}
+
+
 /*
-	rootPath is the /app
+	rootPath is the /app/html
 	need Method check and if it is allowed
 	maybe later split to different method then call dedicated function
 */
-std::string	serveFileRequest(int client_fd, const HttpRequest &req, const ServerConfig &server){
-	std::string	bodyStr;
-	std::string	filePath = "." + server.root + req.path;
 
-	if (req.path == "/")
-		filePath += "index.html";
-
-	std::ifstream	fileContent(filePath.c_str());
-	if (!fileContent){
-		bodyStr = ErrorContent(server, 404);
-	}
-	else{
-		std::ostringstream	body;
-		body << fileContent.rdbuf();
-		bodyStr = body.str();
-		fileContent.close();
-	}
-	char status_code[] = "200 OK";
-	//need dedicated respond and header builder
-	std::ostringstream	response;
-	response << "HTTP/1.1" << status_code << "\r\n"
-		<< "Content-Length: " << bodyStr.size() << "\r\n"
-		<< "Content-Type: text/html\r\n"
-		<< "\r\n"
-		<< bodyStr;
-
-	return response.str();
-}
 
 std::string	ErrorContent(ServerConfig server, int errorCode)
 {
@@ -76,8 +66,10 @@ std::string	ErrorContent(ServerConfig server, int errorCode)
 	std::string	bodyStr;
 	std::string	path = server.errorPages[errorCode];
 	if (path.empty()){
-		std::cout << "Empty file path" << std::endl;
-		bodyStr = "<html><body><h1>404 Not Found</h1></body></html>";
+		std::cout << "File not found: " << path << std::endl;
+		std::ostringstream oss;
+		oss << errorCode;
+		bodyStr = "<html><body><h1> " + oss.str() + " Not Found</h1></body></html>";
 		return bodyStr;
 	}
 	path = "." + path;

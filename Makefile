@@ -3,7 +3,7 @@ NAME:= webserv
 CFLAGS:= -std=c++98  -g
 INCLUDES:= inc
 SRC_DIR:= src
-SRCS:= main.cpp config.cpp request.cpp server.cpp TO_DELETE.cpp
+SRCS:= main.cpp config.cpp request.cpp response.cpp server.cpp TO_DELETE.cpp
 OBJS = $(SRCS:%.cpp=$(SRC_DIR)/%.o)
 
 all: $(NAME)
