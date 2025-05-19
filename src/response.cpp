@@ -29,6 +29,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	return makeResponse(statusCode, statusText, bodyStr);
 }
 
+//will and a static page later
 std::string methodNotAllowedResponse() {
 	std::string body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
 	return makeResponse(405, "Method Not Allowed", body);
