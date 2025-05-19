@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "config.hpp"
 
 int	setSocket(ServerConfig &server);

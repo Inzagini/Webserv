@@ -24,7 +24,6 @@ HttpRequest parseHttpRequest(char *rawInput)
 		}
 	}
 
-	//body
 	std::map<std::string, std::string>::iterator it = req.headers.find("Content-Lenght");
 	if (it != req.headers.end()){
 		int	contentLenght = std::atoi(it->second.c_str());
