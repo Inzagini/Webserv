@@ -43,30 +43,12 @@ int	setSocket(ServerConfig &server)
 }
 
 /*
-	handle connection and call the request parsing
+	handle connection using the poll and it handle when the client connect
+	call the request parsing
 	depend on result of request parse then server the correct webpage
 */
 int	Server::connectionHandle(ServerConfig &server)
 {
-	// char	buffer[4096];
-	// int		server_fd = setSocket(server);
-	// std::cout << "[Listening]" << std::endl;
-	// while (true){
-	// 	int client_fd = accept(server_fd, NULL, NULL);
-	// 	if (client_fd < 0) continue;
-	// 	std::cout << "[Client Connected]" << std::endl;
-
-	// 	ssize_t	bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	// 	if (bytes_read > 0)
-	// 	{
-	// 		std::cout << "[Request]\n" << std::endl;
-
-	// 		HttpRequest req = parseHttpRequest(buffer);
-	// 		std::string full_response = serveFileRequest(client_fd, req, server);
-	// 		send(client_fd, full_response.c_str(), full_response.length(), 0);
-	// 	}
-	// 	close(client_fd);
-	// }
 	bool isServer = false;
 	while (true){
 		int pollCount = poll(fds.data(), fds.size(), -1);
@@ -85,19 +67,11 @@ int	Server::connectionHandle(ServerConfig &server)
 				}
 
 				if (isServer){
-					int clientFD = accept(fd, NULL, NULL);
-					if (clientFD > fd){
-						struct pollfd newPfd;
-						newPfd.fd = clientFD;
-						newPfd.events = POLLIN;
-						newPfd.revents = 0;
-						fds.push_back(newPfd);
-						std::cout << "[Client connected]\n" << std::endl;
-					}
+					this->clientHandle(fd);
 				}
 				else {
-					char buffer[4096];
-					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer) + 1, 0);
+					char	buffer[4096];
+					ssize_t	bytesRead = recv(fd, buffer, sizeof(buffer) + 1, 0);
 					if (bytesRead > 0){
 						buffer[bytesRead] = 0;
 						std::cout << "[Request from client]\n" << buffer << "\n";
@@ -118,7 +92,7 @@ int	Server::connectionHandle(ServerConfig &server)
 	return EXIT_SUCCESS;
 }
 
-void Server::setServerFd(Config conf)
+void	Server::setServerFd(Config conf)
 {
 	for (int i = 0; i < conf.getServer().size(); i++){
 		int serverFD = setSocket(conf.getServer()[i]);
@@ -130,5 +104,17 @@ void Server::setServerFd(Config conf)
 		pfd.events = POLLIN;
 		pfd.revents = 0;
 		fds.push_back(pfd);
+	}
+}
+
+void	Server::clientHandle(int fd){
+	int clientFD = accept(fd, NULL, NULL);
+	if (clientFD > fd){
+		struct pollfd newPfd;
+		newPfd.fd = clientFD;
+		newPfd.events = POLLIN;
+		newPfd.revents = 0;
+		fds.push_back(newPfd);
+		std::cout << "[Client connected]\n" << std::endl;
 	}
 }

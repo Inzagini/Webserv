@@ -20,6 +20,9 @@ class Server
 	public:
 		void	setServerFd(Config conf);
 		int		connectionHandle(ServerConfig &server);
+
+	private:
+		void	clientHandle(int fd);
 };
 
 int	setSocket(ServerConfig &server);
