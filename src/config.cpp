@@ -83,8 +83,8 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 				std::cerr << "Missing ':' in " << tokens[1] << std::endl;
 				return EXIT_FAILURE;
 			}
-			server.listen_ip = tokens[1].substr(0, colon);
-			server.listen_port = std::atoi(tokens[1].substr(colon + 1).c_str());
+			server.listenIP = tokens[1].substr(0, colon);
+			server.listenPort = std::atoi(tokens[1].substr(colon + 1).c_str());
 		}
 		else if (tokens[0] == "server_name" && tokens.size() > 1)
 			server.server_name = tokens[1];
@@ -124,7 +124,7 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 		else if (tokens[0] == "upload_store" && tokens.size() > 1)
 			loc.upload_store = tokens[1];
 		else if (tokens[0] == "cgi_pass" && tokens.size() > 1)
-			loc.cgiPath == tokens[1];
+			loc.cgiPath = tokens[1];
 		else {
 			std::cerr << "Unknow key: " << tokens[0] << std::endl;
 			return EXIT_FAILURE;

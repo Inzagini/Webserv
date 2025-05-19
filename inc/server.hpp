@@ -7,9 +7,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <poll.h>
 #include "config.hpp"
+#include <algorithm>
+
+class Server
+{
+	private:
+		std::vector<pollfd>	fds;
+		std::vector<int>	serverFds;
+
+	public:
+		void	setServerFd(Config conf);
+		int		connectionHandle(ServerConfig &server);
+};
 
 int	setSocket(ServerConfig &server);
-int	connectionHandle(ServerConfig &server);
 
 #endif
