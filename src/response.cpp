@@ -30,15 +30,18 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 }
 
 //will and a static page later
-std::string methodNotAllowedResponse() {
-	std::string body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
-	return makeResponse(405, "Method Not Allowed", body);
+std::string methodNotAllowedResponse(const HttpRequest &req, const ServerConfig &server) {
+
+	std::string	bodyStr = ErrorContent(server, 405);
+	if (bodyStr.empty())
+		bodyStr = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+	return makeResponse(405, "Method Not Allowed", bodyStr);
 }
 
 std::string	makeResponse(int statusCode, std::string statusText, std::string bodyStr)
 {
 	std::ostringstream	response;
-	response << "HTTP/1.1" << statusCode << statusText <<"\r\n"
+	response << "HTTP/1.1 " << statusCode << " " << statusText <<"\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"
 		<< "Content-Type: text/html\r\n"
 		<< "\r\n"

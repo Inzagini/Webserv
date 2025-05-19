@@ -78,6 +78,7 @@ int	Server::connectionHandle(ServerConfig &server)
 						std::cout << "[Request from client]\n" << buffer << "\n";
 						HttpRequest req = parseHttpRequest(buffer);
 						std::string full_response = handleRequest(req, server);
+						std::cout << "[Response]\n" << full_response << std::endl;
 						send(fd, full_response.c_str(), full_response.length(), 0);
 					}
 					else{

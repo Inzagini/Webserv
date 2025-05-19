@@ -49,7 +49,7 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 		return handleGet(req, server);
 	}
 	else
-		return methodNotAllowedResponse();
+		return methodNotAllowedResponse(req, server);
 }
 
 
