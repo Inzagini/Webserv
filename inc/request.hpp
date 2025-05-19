@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "server.hpp"
+
 struct HttpRequest {
 	std::string	method;
 	std::string	path;
@@ -12,8 +14,8 @@ struct HttpRequest {
 	std::string	body;
 };
 
-HttpRequest parseHttpRequest(char *rawInput);
 void printHttpRequest(const HttpRequest& req);
-std::string	serveFileRequest(int client_fd, const HttpRequest &req, const std::string &rootPath);
-
+HttpRequest parseHttpRequest(char *rawInput);
+std::string	serveFileRequest(int client_fd, const HttpRequest &req, const ServerConfig &server);
+std::string	ErrorContent(ServerConfig server, int errorCode);
 #endif

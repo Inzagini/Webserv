@@ -42,30 +42,58 @@ HttpRequest parseHttpRequest(char *rawInput)
 	need Method check and if it is allowed
 	maybe later split to different method then call dedicated function
 */
-std::string	serveFileRequest(int client_fd, const HttpRequest &req, const std::string &rootPath){
-
-	std::string	filePath = "." + rootPath + req.path;
+std::string	serveFileRequest(int client_fd, const HttpRequest &req, const ServerConfig &server){
+	std::string	bodyStr;
+	std::string	filePath = "." + server.root + req.path;
 
 	if (req.path == "/")
 		filePath += "index.html";
 
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent){
-		//404 not found
+		bodyStr = ErrorContent(server, 404);
 	}
-
-	std::ostringstream	body;
-	body << fileContent.rdbuf();
-	std::string bodyStr = body.str();
-	fileContent.close();
-
+	else{
+		std::ostringstream	body;
+		body << fileContent.rdbuf();
+		bodyStr = body.str();
+		fileContent.close();
+	}
+	char status_code[] = "200 OK";
 	//need dedicated respond and header builder
 	std::ostringstream	response;
-	response << "HTTP/1.1 200 OK\r\n"
+	response << "HTTP/1.1" << status_code << "\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"
 		<< "Content-Type: text/html\r\n"
 		<< "\r\n"
 		<< bodyStr;
 
 	return response.str();
+}
+
+std::string	ErrorContent(ServerConfig server, int errorCode)
+{
+	std::string	body;
+	std::string	bodyStr;
+	std::string	path = server.errorPages[errorCode];
+	if (path.empty()){
+		std::cout << "Empty file path" << std::endl;
+		bodyStr = "<html><body><h1>404 Not Found</h1></body></html>";
+		return bodyStr;
+	}
+	path = "." + path;
+	std::ifstream fileContent(path.c_str());
+	if (!fileContent){
+		std::cout << "File not found: " << path << std::endl;
+		std::ostringstream oss;
+		oss << errorCode;
+		bodyStr = "<html><body><h1> " + oss.str() + " Not Found</h1></body></html>";
+	}
+	else{
+		std::ostringstream	body;
+		body << fileContent.rdbuf();
+		bodyStr = body.str();
+		fileContent.close();
+	}
+	return bodyStr;
 }

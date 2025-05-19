@@ -44,10 +44,10 @@ int	connectionHandle(ServerConfig &server)
 		ssize_t	bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 		if (bytes_read > 0)
 		{
-			std::cout << "[Request] \n" << buffer << std::endl;
+			std::cout << "[Request]\n" << std::endl;
 
 			HttpRequest req = parseHttpRequest(buffer);
-			std::string full_response = serveFileRequest(client_fd, req, server.root);
+			std::string full_response = serveFileRequest(client_fd, req, server);
 			send(client_fd, full_response.c_str(), full_response.length(), 0);
 		}
 		close(client_fd);
