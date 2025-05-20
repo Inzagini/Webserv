@@ -12,7 +12,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent){
 		bodyStr = ErrorContent(server, 404);
-		statusText = " 404 Not Found";
+		statusText = " Not Found";
 		statusCode = 404;
 	}
 	else{
@@ -29,6 +29,12 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	return makeResponse(statusCode, statusText, bodyStr);
 }
 
+std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
+	std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Type");
+	std::cout << "[Body]\n"<< req.body << std::endl;
+	return "";
+}
+
 //will and a static page later
 std::string methodNotAllowedResponse() {
 	std::string body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
@@ -38,7 +44,7 @@ std::string methodNotAllowedResponse() {
 std::string	makeResponse(int statusCode, std::string statusText, std::string bodyStr)
 {
 	std::ostringstream	response;
-	response << "HTTP/1.1" << statusCode << statusText <<"\r\n"
+	response << "HTTP/1.1 " << statusCode << statusText <<"\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"
 		<< "Content-Type: text/html\r\n"
 		<< "\r\n"

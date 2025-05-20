@@ -8,7 +8,7 @@
 	headers
 	body
 */
-HttpRequest parseHttpRequest(char *rawInput)
+HttpRequest parseHttpRequest(const char *rawInput)
 {
 	HttpRequest req;
 	std::istringstream stream(rawInput);
@@ -41,12 +41,15 @@ HttpRequest parseHttpRequest(char *rawInput)
 	return req;
 }
 
-std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
+std::string	handleRequest(const HttpRequest &req,const ServerConfig &server)
 {
 	std::string	bodyStr;
 
 	if (req.method == "GET"){
 		return handleGet(req, server);
+	}
+	else if (req.method == "POST"){
+		return handlePost(req, server);
 	}
 	else
 		return methodNotAllowedResponse();
