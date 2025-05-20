@@ -51,12 +51,12 @@ int	setSocket(ServerConfig &server)
 int	Server::connectionHandle(ServerConfig &server)
 {
 	bool isServer = false;
-
+	std::map<int, std::string> buffers;
 	while (true){
 		int pollCount = poll(fds.data(), fds.size(), -1);
 		if (pollCount < 0)
 			continue;
-		std::map<int, std::string> buffers;
+
 		for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
 			if (fds[i].revents & POLLIN) {
 				int fd = fds[i].fd;
@@ -78,20 +78,14 @@ int	Server::connectionHandle(ServerConfig &server)
 						buffers[fd].append(buffer, bytesRead);
 
 						size_t headerEnd = buffers[fd].find("\r\n\r\n");
+						std::cout << "[Found]: " << headerEnd
+									<< "\n[Header Size]: " << buffers[fd].substr(0, headerEnd + 4).size()
+									<< "\n[Size]: " << buffers[fd].size() - buffers[fd].substr(0, headerEnd + 4).size() << std::endl;
 						if (headerEnd != std::string::npos){
+							// buffer[bytesRead] = 0;
 							std::cout << "[Request from client]\n" << buffer << "\n";
-							std::string header = buffers[fd].substr(0, headerEnd + 4);
-							const HttpRequest req = parseHttpRequest(header.c_str());
-
-							if (req.headers.find("Content-Length") != req.headers.end()){
-								std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Length");
-								size_t bodySize = static_cast<size_t>(std::atoi(it->second.c_str()));
-								size_t headerSize = buffers[fd].size() - (headerEnd + 4);
-								if ( bodySize > headerSize){
-									std::cout << "Continue" << std::endl;
-									continue;
-								}
-							}
+							const HttpRequest req = parseHttpRequest(buffer);
+							std::cout << buffer << std::endl;
 							std::string full_response = handleRequest(req, server);
 							send(fd, full_response.c_str(), full_response.length(), 0);
 						}
