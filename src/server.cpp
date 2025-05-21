@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*																			*/
-/*														:::	  ::::::::   */
-/*   server.cpp										 :+:	  :+:	:+:   */
-/*													+:+ +:+		 +:+	 */
-/*   By: quannguy <quannguy@student.42.fr>		  +#+  +:+	   +#+		*/
-/*												+#+#+#+#+#+   +#+		   */
-/*   Created: 2025/05/21 12:02:55 by quannguy		  #+#	#+#			 */
-/*   Updated: 2025/05/21 12:03:27 by quannguy		 ###   ########.fr	   */
-/*																			*/
-/* ************************************************************************** */
-
 #include "config.hpp"
 #include "server.hpp"
 #include "request.hpp"
@@ -77,9 +65,8 @@ int	Server::connectionHandle(ServerConfig &server){
 					}
 				}
 
-				if (isServer) {
+				if (isServer)
 					this->clientHandle(fd);
-				}
 				else {
 					char buffer[4096];
 					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
@@ -87,20 +74,11 @@ int	Server::connectionHandle(ServerConfig &server){
 						buffers[fd].append(buffer, bytesRead);
 						if (!headerParsed[fd])
 							this->headerParser(fd);
-
-						// Header parsed, wait for full body
-						if (buffers[fd].size() >= expectedBodyLen[fd]) {
-							this->ReqResHandle(fd, server);
-						}
+						if (buffers[fd].size() >= expectedBodyLen[fd])
+							this->ReqRespHandle(fd, server);
 					}
 					else {
-						std::cout << "[Client disconnected]\n";
-						close(fd);
-						fds.erase(fds.begin() + i);
-						buffers.erase(fd);
-						headerParsed.erase(fd);
-						expectedBodyLen.erase(fd);
-						parsedRequest.erase(fd);
+						this->clientDisconnect(fd, i);
 						--i;
 					}
 				}
@@ -159,12 +137,25 @@ void	Server::headerParser(int fd){
 	}
 }
 
-void	Server::ReqResHandle(int fd, ServerConfig &server){
+/*
+	function is called when got the full request
+*/
+void	Server::ReqRespHandle(int fd, ServerConfig &server){
 	parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
 	std::string full_response = handleRequest(parsedRequest[fd], server);
 	send(fd, full_response.c_str(), full_response.length(), 0);
 	buffers[fd].erase(0, expectedBodyLen[fd]);
 	headerParsed[fd] = false;
 	expectedBodyLen[fd] = 0;
+	parsedRequest.erase(fd);
+}
+
+void	Server::clientDisconnect(int fd, int i){
+	std::cout << "[Client disconnected]\n";
+	close(fd);
+	fds.erase(fds.begin() + i);
+	buffers.erase(fd);
+	headerParsed.erase(fd);
+	expectedBodyLen.erase(fd);
 	parsedRequest.erase(fd);
 }

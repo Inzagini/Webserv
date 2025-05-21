@@ -31,7 +31,8 @@ class Server
 	private:
 		void	clientHandle(int fd);
 		void	headerParser(int fd);
-		void	ReqResHandle(int fd, ServerConfig &server);
+		void	ReqRespHandle(int fd, ServerConfig &server);
+		void	clientDisconnect(int fd, int i);
 };
 
 int	setSocket(ServerConfig &server);
