@@ -11,7 +11,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent){
-		bodyStr = ErrorContent(server, 404);
+		bodyStr = ErrorContent(server, 404, "Not Found");
 		statusText = " Not Found";
 		statusCode = 404;
 	}
@@ -33,15 +33,20 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	parse the filename, file type, save the file
 */
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
-	std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Type");
-	// std::cout << "[Body]: "<< req.body.size() << "\n" <<req.body << std::endl;
-	std::string filename;
+	std::string	filename;
+	std::string	contentType;
 	int filenamePos = req.body.find("filename=\"");
 	if (filenamePos != std::string::npos){
 		int filenamePosEnd = req.body.substr(filenamePos + 10).find("\"");
 		filename = req.body.substr(filenamePos + 10, filenamePosEnd);
-		std::cout << "Filename: " << filename << std::endl;
 	}
+
+	int	contentTypePos = req.body.find("Content-Type");
+	if (contentTypePos != std::string::npos){
+		int	contentTypePosEnd = req.body.substr(contentTypePos + 14).find("\r\n");
+		std::string contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
+	}
+
 	if (filename.empty())
 		filename = "default";
 	std::string filePath = "./app/uploads/" + filename;
@@ -50,6 +55,8 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	int contentEnd = req.body.substr(contentStart + 4).find("----");
 	std::string content = req.body.substr(contentStart + 4, contentEnd);
 
+	if (content != "image/png" || content != "iamge/jpg")
+		return makeResponse(403, "Forbiden", "<html><body><h1>Forbiden</h1></body></html>");
 	std::ofstream outFile(filePath.c_str(), std::ios::binary);
 	if (outFile) {
 		outFile.write(content.c_str(), content.size());
@@ -64,8 +71,8 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 }
 
 //will and a static page later
-std::string methodNotAllowedResponse() {
-	std::string body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+std::string methodNotAllowedResponse(const ServerConfig &server) {
+	std::string body = ErrorContent(server, 405, "Method not allowed");
 	return makeResponse(405, "Method Not Allowed", body);
 }
 
