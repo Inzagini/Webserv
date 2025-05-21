@@ -60,13 +60,7 @@ int	setSocket(ServerConfig &server)
 	call the request parsing
 	depend on result of request parse then server the correct webpage
 */
-int	Server::connectionHandle(ServerConfig &server)
-{
-	std::map<int, std::string> buffers;
-	std::map<int, bool> headerParsed;
-	std::map<int, size_t> expectedBodyLen;
-	std::map<int, HttpRequest> parsedRequest;
-
+int	Server::connectionHandle(ServerConfig &server){
 	while (true) {
 		int pollCount = poll(fds.data(), fds.size(), -1);
 		if (pollCount < 0)
@@ -91,40 +85,15 @@ int	Server::connectionHandle(ServerConfig &server)
 					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
 					if (bytesRead > 0) {
 						buffers[fd].append(buffer, bytesRead);
-
-						// If header not parsed yet, look for header end
-						if (!headerParsed[fd]) {
-							size_t headerEnd = buffers[fd].find("\r\n\r\n");
-							if (headerEnd != std::string::npos) {
-								std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
-								parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
-								headerParsed[fd] = true;
-
-								// Check for Content-Length
-								std::map<std::string, std::string>::iterator it = parsedRequest[fd].headers.find("Content-Length");
-								if (it != parsedRequest[fd].headers.end()) {
-									expectedBodyLen[fd] = std::atoi(it->second.c_str());
-								} else {
-									expectedBodyLen[fd] = 0;
-								}
-
-								// Remove header from buffer
-								buffers[fd].erase(0, headerEnd + 4);
-							}
-						}
+						if (!headerParsed[fd])
+							this->headerParser(fd);
 
 						// Header parsed, wait for full body
 						if (buffers[fd].size() >= expectedBodyLen[fd]) {
-							parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
-							std::string full_response = handleRequest(parsedRequest[fd], server);
-							send(fd, full_response.c_str(), full_response.length(), 0);
-							buffers[fd].erase(0, expectedBodyLen[fd]);
-							headerParsed[fd] = false;
-							expectedBodyLen[fd] = 0;
-							parsedRequest.erase(fd);
+							this->ReqResHandle(fd, server);
 						}
-
-					} else {
+					}
+					else {
 						std::cout << "[Client disconnected]\n";
 						close(fd);
 						fds.erase(fds.begin() + i);
@@ -166,4 +135,36 @@ void	Server::clientHandle(int fd){
 		fds.push_back(newPfd);
 		std::cout << "[Client connected]\n" << std::endl;
 	}
+}
+
+/*
+	parse the header from the request and assign data to struct
+	check for content if exist
+	then remove header from buffer
+*/
+void	Server::headerParser(int fd){
+	size_t headerEnd = buffers[fd].find("\r\n\r\n");
+	if (headerEnd != std::string::npos) {
+		std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
+		parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
+		headerParsed[fd] = true;
+
+		std::map<std::string, std::string>::iterator it = parsedRequest[fd].headers.find("Content-Length");
+		if (it != parsedRequest[fd].headers.end())
+			expectedBodyLen[fd] = std::atoi(it->second.c_str());
+		else
+			expectedBodyLen[fd] = 0;
+
+		buffers[fd].erase(0, headerEnd + 4); //remove header from buffer
+	}
+}
+
+void	Server::ReqResHandle(int fd, ServerConfig &server){
+	parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
+	std::string full_response = handleRequest(parsedRequest[fd], server);
+	send(fd, full_response.c_str(), full_response.length(), 0);
+	buffers[fd].erase(0, expectedBodyLen[fd]);
+	headerParsed[fd] = false;
+	expectedBodyLen[fd] = 0;
+	parsedRequest.erase(fd);
 }

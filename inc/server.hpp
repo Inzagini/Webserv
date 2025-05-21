@@ -8,14 +8,21 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
-#include "config.hpp"
 #include <algorithm>
+#include "config.hpp"
+#include "request.hpp"
+
+struct HttpRequest;
 
 class Server
 {
 	private:
 		std::vector<pollfd>	fds;
 		std::vector<int>	serverFds;
+		std::map<int, std::string> buffers;
+		std::map<int, bool> headerParsed;
+		std::map<int, size_t> expectedBodyLen;
+		std::map<int, HttpRequest> parsedRequest;
 
 	public:
 		void	setServerFd(Config conf);
@@ -23,6 +30,8 @@ class Server
 
 	private:
 		void	clientHandle(int fd);
+		void	headerParser(int fd);
+		void	ReqResHandle(int fd, ServerConfig &server);
 };
 
 int	setSocket(ServerConfig &server);
