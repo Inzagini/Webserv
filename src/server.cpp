@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*																			*/
+/*														:::	  ::::::::   */
+/*   server.cpp										 :+:	  :+:	:+:   */
+/*													+:+ +:+		 +:+	 */
+/*   By: quannguy <quannguy@student.42.fr>		  +#+  +:+	   +#+		*/
+/*												+#+#+#+#+#+   +#+		   */
+/*   Created: 2025/05/21 12:02:55 by quannguy		  #+#	#+#			 */
+/*   Updated: 2025/05/21 12:03:27 by quannguy		 ###   ########.fr	   */
+/*																			*/
+/* ************************************************************************** */
+
 #include "config.hpp"
 #include "server.hpp"
 #include "request.hpp"
@@ -50,93 +62,83 @@ int	setSocket(ServerConfig &server)
 */
 int	Server::connectionHandle(ServerConfig &server)
 {
-    std::map<int, std::string> buffers;
-    std::map<int, bool> headerParsed;
-    std::map<int, size_t> expectedBodyLen;
-    std::map<int, HttpRequest> parsedRequest;
+	std::map<int, std::string> buffers;
+	std::map<int, bool> headerParsed;
+	std::map<int, size_t> expectedBodyLen;
+	std::map<int, HttpRequest> parsedRequest;
 
-    while (true) {
-        int pollCount = poll(fds.data(), fds.size(), -1);
-        if (pollCount < 0)
-            continue;
+	while (true) {
+		int pollCount = poll(fds.data(), fds.size(), -1);
+		if (pollCount < 0)
+			continue;
 
-        for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
-            if (fds[i].revents & POLLIN) {
-                int fd = fds[i].fd;
-                bool isServer = false;
-                for (size_t j = 0; j < serverFds.size(); ++j) {
-                    if (fd == serverFds[j]) {
-                        isServer = true;
-                        break;
-                    }
-                }
+		for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
+			if (fds[i].revents & POLLIN) {
+				int fd = fds[i].fd;
+				bool isServer = false;
+				for (size_t j = 0; j < serverFds.size(); ++j) {
+					if (fd == serverFds[j]) {
+						isServer = true;
+						break;
+					}
+				}
 
-                if (isServer) {
-                    this->clientHandle(fd);
-                }
+				if (isServer) {
+					this->clientHandle(fd);
+				}
 				else {
-                    char buffer[4096];
-                    ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
-                    if (bytesRead > 0) {
-                        buffers[fd].append(buffer, bytesRead);
+					char buffer[4096];
+					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
+					if (bytesRead > 0) {
+						buffers[fd].append(buffer, bytesRead);
 
-                        // If header not parsed yet, look for header end
-                        if (!headerParsed[fd]) {
-                            size_t headerEnd = buffers[fd].find("\r\n\r\n");
-                            if (headerEnd != std::string::npos) {
-                                std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
-                                parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
-                                headerParsed[fd] = true;
+						// If header not parsed yet, look for header end
+						if (!headerParsed[fd]) {
+							size_t headerEnd = buffers[fd].find("\r\n\r\n");
+							if (headerEnd != std::string::npos) {
+								std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
+								parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
+								headerParsed[fd] = true;
 
-                                // Check for Content-Length
-                                std::map<std::string, std::string>::iterator it = parsedRequest[fd].headers.find("Content-Length");
-                                if (it != parsedRequest[fd].headers.end()) {
-                                    expectedBodyLen[fd] = std::atoi(it->second.c_str());
-                                } else {
-                                    expectedBodyLen[fd] = 0;
-                                }
+								// Check for Content-Length
+								std::map<std::string, std::string>::iterator it = parsedRequest[fd].headers.find("Content-Length");
+								if (it != parsedRequest[fd].headers.end()) {
+									expectedBodyLen[fd] = std::atoi(it->second.c_str());
+								} else {
+									expectedBodyLen[fd] = 0;
+								}
 
-                                // Remove header from buffer
-                                buffers[fd].erase(0, headerEnd + 4);
+								// Remove header from buffer
+								buffers[fd].erase(0, headerEnd + 4);
+							}
+						}
 
-                                // If no body, handle request now
-                                if (expectedBodyLen[fd] == 0) {
-                                    std::string full_response = handleRequest(parsedRequest[fd], server);
-                                    send(fd, full_response.c_str(), full_response.length(), 0);
-                                    buffers[fd].clear();
-                                    headerParsed[fd] = false;
-                                    expectedBodyLen[fd] = 0;
-                                    parsedRequest.erase(fd);
-                                }
-                            }
-                        }
-						else {
-                            // Header parsed, wait for full body
-                            if (buffers[fd].size() >= expectedBodyLen[fd]) {
-                                parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
-                                std::string full_response = handleRequest(parsedRequest[fd], server);
-                                send(fd, full_response.c_str(), full_response.length(), 0);
-                                buffers[fd].erase(0, expectedBodyLen[fd]);
-                                headerParsed[fd] = false;
-                                expectedBodyLen[fd] = 0;
-                                parsedRequest.erase(fd);
-                            }
-                        }
-                    } else {
-                        std::cout << "[Client disconnected]\n";
-                        close(fd);
-                        fds.erase(fds.begin() + i);
-                        buffers.erase(fd);
-                        headerParsed.erase(fd);
-                        expectedBodyLen.erase(fd);
-                        parsedRequest.erase(fd);
-                        --i;
-                    }
-                }
-            }
-        }
-    }
-    return EXIT_SUCCESS;
+						// Header parsed, wait for full body
+						if (buffers[fd].size() >= expectedBodyLen[fd]) {
+							parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
+							std::string full_response = handleRequest(parsedRequest[fd], server);
+							send(fd, full_response.c_str(), full_response.length(), 0);
+							buffers[fd].erase(0, expectedBodyLen[fd]);
+							headerParsed[fd] = false;
+							expectedBodyLen[fd] = 0;
+							parsedRequest.erase(fd);
+						}
+
+					} else {
+						std::cout << "[Client disconnected]\n";
+						close(fd);
+						fds.erase(fds.begin() + i);
+						buffers.erase(fd);
+						headerParsed.erase(fd);
+						expectedBodyLen.erase(fd);
+						parsedRequest.erase(fd);
+						--i;
+					}
+				}
+			}
+		}
+	}
+	return EXIT_SUCCESS;
 }
 
 void	Server::setServerFd(Config conf)
