@@ -8,7 +8,7 @@
 	headers
 	body
 */
-HttpRequest parseHttpRequest(char *rawInput)
+HttpRequest parseHttpRequest(const char *rawInput)
 {
 	HttpRequest req;
 	std::istringstream stream(rawInput);
@@ -48,8 +48,11 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	if (req.method == "GET"){
 		return handleGet(req, server);
 	}
+	else if (req.method == "POST"){
+		return handlePost(req, server);
+	}
 	else
-		return methodNotAllowedResponse(req, server);
+		return methodNotAllowedResponse(server);
 }
 
 
@@ -60,7 +63,7 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 */
 
 
-std::string	ErrorContent(ServerConfig server, int errorCode)
+std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 {
 	std::string	body;
 	std::string	bodyStr;
@@ -69,7 +72,7 @@ std::string	ErrorContent(ServerConfig server, int errorCode)
 		std::cout << "File not found: " << path << std::endl;
 		std::ostringstream oss;
 		oss << errorCode;
-		bodyStr = "<html><body><h1> " + oss.str() + " Not Found</h1></body></html>";
+		bodyStr = "<html><body><h1> " + oss.str() + errMsg + "</h1></body></html>";
 		return bodyStr;
 	}
 	path = "." + path;
@@ -78,7 +81,7 @@ std::string	ErrorContent(ServerConfig server, int errorCode)
 		std::cout << "File not found: " << path << std::endl;
 		std::ostringstream oss;
 		oss << errorCode;
-		bodyStr = "<html><body><h1> " + oss.str() + " Not Found</h1></body></html>";
+		bodyStr = "<html><body><h1> " + oss.str() + errMsg + "</h1></body></html>";
 	}
 	else{
 		std::ostringstream	body;
