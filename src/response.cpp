@@ -44,7 +44,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	int	contentTypePos = req.body.find("Content-Type");
 	if (contentTypePos != std::string::npos){
 		int	contentTypePosEnd = req.body.substr(contentTypePos + 14).find("\r\n");
-		std::string contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
+		contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
 	}
 
 	if (filename.empty())
@@ -54,8 +54,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	int contentStart = req.body.find("\r\n\r\n");
 	int contentEnd = req.body.substr(contentStart + 4).find("----");
 	std::string content = req.body.substr(contentStart + 4, contentEnd);
-
-	if (content != "image/png" || content != "iamge/jpg")
+	if (contentType != "image/png" && contentType != "image/jpeg")
 		return makeResponse(403, "Forbiden", "<html><body><h1>Forbiden</h1></body></html>");
 	std::ofstream outFile(filePath.c_str(), std::ios::binary);
 	if (outFile) {

@@ -44,7 +44,7 @@ test_endpoint GET "/index.html" 200
 test_endpoint GET "/nonexistent.html" 404
 
 # POST
-# test_endpoint POST "/post_here" 200 "name=webserv"
+test_endpoint POST "/uploads.html" 200 "name=webserv"
 # test_endpoint POST "/nonexistent.html" 404 "data=test"
 
 # # DELETE
