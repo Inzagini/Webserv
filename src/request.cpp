@@ -13,9 +13,9 @@ HttpRequest parseHttpRequest(const char *rawInput)
 	HttpRequest			req;
 	std::istringstream	stream(rawInput);
 	std::string			line;
-	std::istringstream	requestLine(line);
 
 	std::getline(stream, line);
+	std::istringstream	requestLine(line);
 	requestLine >> req.method >> req.path >> req.version;
 
 	while (std::getline(stream, line)){
@@ -51,8 +51,9 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	else if (req.method == "POST"){
 		return handlePost(req, server);
 	}
-	else
+	else{
 		return methodNotAllowedResponse(server);
+	}
 }
 
 
@@ -61,8 +62,6 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	need Method check and if it is allowed
 	maybe later split to different method then call dedicated function
 */
-
-
 std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 {
 	std::string	body;
@@ -70,19 +69,16 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 	std::string	path = server.errorPages[errorCode];
 
 	if (path.empty()){
-		std::cout << "File not found: " << path << std::endl;
-		std::ostringstream oss;
-		oss << errorCode;
-		bodyStr = "<html><body><h1> " + oss.str() + errMsg + "</h1></body></html>";
+		std::cout << "Using default error" << std::endl;
+		bodyStr = "<html><body><h1>"+ errMsg + "</h1></body></html>";
 		return bodyStr;
 	}
 	path = "." + path;
 	std::ifstream fileContent(path.c_str());
 	if (!fileContent){
 		std::cout << "File not found: " << path << std::endl;
-		std::ostringstream oss;
-		oss << errorCode;
-		bodyStr = "<html><body><h1> " + oss.str() + errMsg + "</h1></body></html>";
+		std::cout << "Using default error" << std::endl;
+		bodyStr = "<html><body><h1> " + errMsg + "</h1></body></html>";
 	}
 	else{
 		std::ostringstream	body;

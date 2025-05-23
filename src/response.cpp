@@ -7,7 +7,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::string	filePath = "." + server.root + req.path;
 
 	if (req.path == "/")
-		filePath += "index.html";
+		filePath += server.index;
 
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent){
@@ -41,27 +41,23 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 		contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
 	}
 
-	if (filename.empty())
-		filename = "default";
-	std::string filePath = "./app/uploads/" + filename;
-
-	int contentStart = req.body.find("\r\n\r\n");
-	int contentEnd = req.body.substr(contentStart + 4).find("----");
-	std::string	content = req.body.substr(contentStart + 4, contentEnd);
-
 	if (contentType != "image/png" && contentType != "image/jpeg")
 		return makeResponse(server, 403, "Forbiden", "Forbiden");
-	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
-	if (outFile) {
-		outFile.write(content.c_str(), content.size());
-		outFile.close();
-		std::cout << "File saved to: " << filePath << std::endl;
-		return makeResponse(server, 200, " OK", "File uploaded successfully");
+
+	if (filename.empty())
+		filename = "default";
+
+	std::string filePath;
+	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
+		if (it->path == "/upload"){
+			filePath = "." + it->upload_store + "/" + filename;
+		}
 	}
-	else {
-		std::cerr << "Failed to save file: " << filePath << std::endl;
-		return makeResponse(server, 500, "Internal Server Error", "Failed to save file");
-	}
+	if (filePath.empty())
+		return makeResponse(server, 404, "Not found", "Failed to save file");
+
+	std::string response = writeToFile(req, server, filePath);
+	return response;
 }
 
 //will and a static page later
@@ -77,7 +73,7 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 	if (statusCode >= 400){
 		std::string body = ErrorContent(server, statusCode, bodyStr);
 		if (!body.empty())
-		bodyStr = body;
+			bodyStr = body;
 	}
 	response << "HTTP/1.1 " << statusCode << statusText <<"\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"
@@ -86,4 +82,23 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 		<< bodyStr;
 
 	return response.str();
+}
+
+std::string	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string filePath)
+{
+	int contentStart = req.body.find("\r\n\r\n");
+	int contentEnd = req.body.substr(contentStart + 4).find("----");
+	std::string	content = req.body.substr(contentStart + 4, contentEnd);
+
+	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
+	if (outFile) {
+		outFile.write(content.c_str(), content.size());
+		outFile.close();
+		std::cout << "File saved to: " << filePath << std::endl;
+		return makeResponse(server, 200, " OK", "File uploaded successfully");
+	}
+	else {
+		std::cerr << "Failed to save file: " << filePath << std::endl;
+		return makeResponse(server, 500, "Internal Server Error", "Failed to save file");
+	}
 }
