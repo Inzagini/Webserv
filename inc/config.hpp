@@ -16,15 +16,15 @@
 struct LocationConfig
 {
 	std::string	path;
-	std::vector<std::string>	allow_method;
 	std::string	cgiPath;
 	std::string	upload_store;
+	std::vector<std::string>	allow_method;
 };
 
 struct ServerConfig
 {
-	std::string					listenIP;
 	int							listenPort;
+	std::string					listenIP;
 	std::string					server_name;
 	std::string					root;
 	std::string					index;
@@ -35,21 +35,19 @@ struct ServerConfig
 class Config
 {
 	private:
-		std::vector<ServerConfig> servers;
+		std::vector<ServerConfig>	servers;
 
 	public:
-		int				load(std::string filename);
-		std::vector<ServerConfig> &getServer() {
-			return servers;
-		}
+		int							load(std::string filename);
+		std::vector<ServerConfig>	&getServer();
 
 	private:
-		std::vector<std::string> 		tokenize(const std::string& line, char delim);
-		int	parseServerBlock(std::istream& file, ServerConfig &server);
-		int	parseLocationBlock(std::istream &file, LocationConfig &loc);
+		std::vector<std::string>	tokenize(const std::string& line, char delim);
+		int							parseServerBlock(std::istream& file, ServerConfig &server);
+		int							parseLocationBlock(std::istream &file, LocationConfig &loc);
 
 };
 
-std::string				 		trim(const std::string& s);
-void printTokens(const std::vector<std::string>& tokens); //to delete
+std::string	trim(const std::string& s);
+void		printTokens(const std::vector<std::string>& tokens); //to delete
 #endif

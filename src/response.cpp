@@ -28,6 +28,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string	filename;
 	std::string	contentType;
+
 	int filenamePos = req.body.find("filename=\"");
 	if (filenamePos != std::string::npos){
 		int filenamePosEnd = req.body.substr(filenamePos + 10).find("\"");
@@ -46,11 +47,11 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 
 	int contentStart = req.body.find("\r\n\r\n");
 	int contentEnd = req.body.substr(contentStart + 4).find("----");
-	std::string content = req.body.substr(contentStart + 4, contentEnd);
+	std::string	content = req.body.substr(contentStart + 4, contentEnd);
 
 	if (contentType != "image/png" && contentType != "image/jpeg")
 		return makeResponse(server, 403, "Forbiden", "Forbiden");
-	std::ofstream outFile(filePath.c_str(), std::ios::binary);
+	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
 	if (outFile) {
 		outFile.write(content.c_str(), content.size());
 		outFile.close();
@@ -70,13 +71,14 @@ std::string methodNotAllowedResponse(const ServerConfig &server) {
 
 std::string	makeResponse(const ServerConfig &server, int statusCode, std::string statusText, std::string bodyStr)
 {
+	std::ostringstream	response;
+
 	bodyStr = "<html><body><h1>" + bodyStr + "</h1></body></html>";
 	if (statusCode >= 400){
 		std::string body = ErrorContent(server, statusCode, bodyStr);
 		if (!body.empty())
 		bodyStr = body;
 	}
-	std::ostringstream	response;
 	response << "HTTP/1.1 " << statusCode << statusText <<"\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"
 		<< "Content-Type: text/html\r\n"

@@ -10,12 +10,12 @@
 */
 HttpRequest parseHttpRequest(const char *rawInput)
 {
-	HttpRequest req;
-	std::istringstream stream(rawInput);
-	std::string line;
+	HttpRequest			req;
+	std::istringstream	stream(rawInput);
+	std::string			line;
+	std::istringstream	requestLine(line);
 
 	std::getline(stream, line);
-	std::istringstream requestLine(line);
 	requestLine >> req.method >> req.path >> req.version;
 
 	while (std::getline(stream, line)){
@@ -31,7 +31,7 @@ HttpRequest parseHttpRequest(const char *rawInput)
 
 	std::map<std::string, std::string>::iterator it = req.headers.find("Content-Lenght");
 	if (it != req.headers.end()){
-		int	contentLenght = std::atoi(it->second.c_str());
+		int		contentLenght = std::atoi(it->second.c_str());
 		char	*buffer = new char[contentLenght + 1];
 		stream.read(buffer, contentLenght);
 		buffer[contentLenght] = '\0';
@@ -68,6 +68,7 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 	std::string	body;
 	std::string	bodyStr;
 	std::string	path = server.errorPages[errorCode];
+
 	if (path.empty()){
 		std::cout << "File not found: " << path << std::endl;
 		std::ostringstream oss;

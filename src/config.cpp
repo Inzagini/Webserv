@@ -5,8 +5,9 @@
 */
 std::string trim(const std::string& s)
 {
-	size_t start = s.find_first_not_of(" \t\r\n");
-	size_t end = s.find_last_not_of(" \t\r\n");
+	size_t	start = s.find_first_not_of(" \t\r\n");
+	size_t	end = s.find_last_not_of(" \t\r\n");
+
 	if (start == std::string::npos)
 		return "";
 	else
@@ -43,11 +44,9 @@ int	Config::load(std::string filename)
 	while (std::getline(file, line))
 	{
 		line = trim(line);
-
-		if (line.empty() || line[0] == '#') continue;
-
-		if (line == "server {")
-		{
+		if (line.empty() || line[0] == '#')
+			continue;
+		if (line == "server {"){
 			ServerConfig server;
 			parseServerBlock(file, server);
 			servers.push_back(server);
@@ -62,6 +61,7 @@ int	Config::load(std::string filename)
 int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 {
 	std::string line;
+
 	while (std::getline(file, line)) {
 		line = trim(line);
 		if (line == "}") break;
@@ -110,6 +110,7 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
+
 	while (std::getline(file, line)) {
 		line = trim(line);
 		if (line == "}") break;
@@ -131,4 +132,8 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 		}
 	}
 	return EXIT_SUCCESS;
+}
+
+std::vector<ServerConfig> &Config::getServer(){
+	return servers;
 }
