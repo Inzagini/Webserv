@@ -51,6 +51,9 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	else if (req.method == "POST"){
 		return handlePost(req, server);
 	}
+	else if (req.method == "DELETE"){
+		return handleDelete(req, server);
+	}
 	else{
 		return methodNotAllowedResponse(server);
 	}

@@ -15,9 +15,10 @@ struct HttpRequest {
 };
 
 void printHttpRequest(const HttpRequest& req);
-HttpRequest parseHttpRequest(const char *rawInput);
+HttpRequest	parseHttpRequest(const char *rawInput);
 std::string	handleRequest(const HttpRequest &req, const ServerConfig &server);
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server);
+std::string	handleDelete(const HttpRequest &req, const ServerConfig &server);
 std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg);
 
 #endif

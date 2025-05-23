@@ -3,6 +3,7 @@
 
 #include <string>
 #include "request.hpp"
+#include <sys/stat.h>
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server);
 std::string methodNotAllowedResponse(const ServerConfig &server);

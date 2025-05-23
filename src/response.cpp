@@ -50,14 +50,43 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string filePath;
 	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
 		if (it->path == "/upload"){
+			struct stat st;
+			if (stat(("." + it->upload_store).c_str(), &st) != 0){
+				if (mkdir(("." + it->upload_store).c_str(), 0755) != 0) {
+					std::cerr << "Failed to create directory: " << "." + it->upload_store<< std::endl;
+					return makeResponse(server, 500, "Internal Server Error", "Failed to create upload directory");
+				}
+			}
 			filePath = "." + it->upload_store + "/" + filename;
 		}
 	}
+
 	if (filePath.empty())
 		return makeResponse(server, 404, "Not found", "Failed to save file");
 
 	std::string response = writeToFile(req, server, filePath);
 	return response;
+}
+
+std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
+	std::cout << req.path << std::endl;
+	std::string	filePath;
+	struct stat st;
+	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
+		if (it->path == "/upload"){
+			struct stat st;
+			filePath = "." + it->upload_store + "/" + req.path;
+			if (stat(filePath.c_str(), &st) != 0){
+				return makeResponse(server, 404, "Not found", "File doesn't exist");
+			}
+		}
+	}
+
+	if (remove(filePath.c_str()) != 0) {
+		std::cerr << "Faild to delete file: " << filePath << std::endl;
+		return makeResponse(server, 500, "Internal Server Error", "Failed to delete the file");
+	}
+	return makeResponse(server, 200, "OK", "OK");
 }
 
 //will and a static page later
