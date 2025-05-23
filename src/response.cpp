@@ -1,9 +1,9 @@
 #include "response.hpp"
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
-	std::string	bodyStr;
 	int			statusCode = -1;
-	std::string statusText;
+	std::string	bodyStr;
+	std::string	statusText;
 	std::string	filePath = "." + server.root + req.path;
 
 	if (req.path == "/")
@@ -11,9 +11,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent){
-		bodyStr = ErrorContent(server, 404, "Not Found");
-		statusText = " Not Found";
-		statusCode = 404;
+		return makeResponse(server, 404, " Not Found", bodyStr);
 	}
 	else{
 		std::ostringstream	body;
@@ -21,16 +19,11 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 		bodyStr = body.str();
 		fileContent.close();
 	}
-	if (statusCode == -1){
-		statusCode = 200;
-		statusText = "OK";
-	}
-
-	return makeResponse(statusCode, statusText, bodyStr);
+	return makeResponse(server, 200, " OK", bodyStr);
 }
 
 /*
-	parse the filename, file type, save the file
+	parse the filename, file type, save the file to the /app/uploads
 */
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string	filename;
@@ -54,29 +47,35 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	int contentStart = req.body.find("\r\n\r\n");
 	int contentEnd = req.body.substr(contentStart + 4).find("----");
 	std::string content = req.body.substr(contentStart + 4, contentEnd);
+
 	if (contentType != "image/png" && contentType != "image/jpeg")
-		return makeResponse(403, "Forbiden", "<html><body><h1>Forbiden</h1></body></html>");
+		return makeResponse(server, 403, "Forbiden", "Forbiden");
 	std::ofstream outFile(filePath.c_str(), std::ios::binary);
 	if (outFile) {
 		outFile.write(content.c_str(), content.size());
 		outFile.close();
 		std::cout << "File saved to: " << filePath << std::endl;
-		return makeResponse(200, "OK", "<html><body><h1>File uploaded successfully</h1></body></html>");
+		return makeResponse(server, 200, " OK", "File uploaded successfully");
 	}
 	else {
 		std::cerr << "Failed to save file: " << filePath << std::endl;
-		return makeResponse(500, "Internal Server Error", "<html><body><h1>Failed to save file</h1></body></html>");
+		return makeResponse(server, 500, "Internal Server Error", "Failed to save file");
 	}
 }
 
 //will and a static page later
 std::string methodNotAllowedResponse(const ServerConfig &server) {
-	std::string body = ErrorContent(server, 405, "Method not allowed");
-	return makeResponse(405, "Method Not Allowed", body);
+	return makeResponse(server, 405, " Method Not Allowed", " Method Not Allowed");
 }
 
-std::string	makeResponse(int statusCode, std::string statusText, std::string bodyStr)
+std::string	makeResponse(const ServerConfig &server, int statusCode, std::string statusText, std::string bodyStr)
 {
+	bodyStr = "<html><body><h1>" + bodyStr + "</h1></body></html>";
+	if (statusCode >= 400){
+		std::string body = ErrorContent(server, statusCode, bodyStr);
+		if (!body.empty())
+		bodyStr = body;
+	}
 	std::ostringstream	response;
 	response << "HTTP/1.1 " << statusCode << statusText <<"\r\n"
 		<< "Content-Length: " << bodyStr.size() << "\r\n"

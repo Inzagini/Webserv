@@ -57,15 +57,7 @@ int	Server::connectionHandle(ServerConfig &server){
 		for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
 			if (fds[i].revents & POLLIN) {
 				int fd = fds[i].fd;
-				bool isServer = false;
-				for (size_t j = 0; j < serverFds.size(); ++j) {
-					if (fd == serverFds[j]) {
-						isServer = true;
-						break;
-					}
-				}
-
-				if (isServer)
+				if (this->isServerCheck(fd))
 					this->clientHandle(fd);
 				else {
 					char buffer[4096];
@@ -104,7 +96,7 @@ void	Server::setServerFd(Config conf)
 }
 
 void	Server::clientHandle(int fd){
-	int clientFD = accept(fd, NULL, NULL);
+	int	clientFD = accept(fd, NULL, NULL);
 	if (clientFD > fd){
 		struct pollfd newPfd;
 		newPfd.fd = clientFD;
@@ -121,7 +113,7 @@ void	Server::clientHandle(int fd){
 	then remove header from buffer
 */
 void	Server::headerParser(int fd){
-	size_t headerEnd = buffers[fd].find("\r\n\r\n");
+	size_t	headerEnd = buffers[fd].find("\r\n\r\n");
 	if (headerEnd != std::string::npos) {
 		std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
 		parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
@@ -132,7 +124,6 @@ void	Server::headerParser(int fd){
 			expectedBodyLen[fd] = std::atoi(it->second.c_str());
 		else
 			expectedBodyLen[fd] = 0;
-
 		buffers[fd].erase(0, headerEnd + 4); //remove header from buffer
 	}
 }
@@ -158,4 +149,13 @@ void	Server::clientDisconnect(int fd, int i){
 	headerParsed.erase(fd);
 	expectedBodyLen.erase(fd);
 	parsedRequest.erase(fd);
+}
+
+bool	Server::isServerCheck(int fd){
+	for (size_t j = 0; j < serverFds.size(); ++j) {
+		if (fd == serverFds[j]) {
+			return true;
+		}
+	}
+	return false;
 }

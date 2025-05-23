@@ -29,6 +29,7 @@ class Server
 		int		connectionHandle(ServerConfig &server);
 
 	private:
+		bool	isServerCheck(int fd);
 		void	clientHandle(int fd);
 		void	headerParser(int fd);
 		void	ReqRespHandle(int fd, ServerConfig &server);
