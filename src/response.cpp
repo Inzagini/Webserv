@@ -29,20 +29,20 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string	filename;
 	std::string	contentType;
 
-	int filenamePos = req.body.find("filename=\"");
-	if (filenamePos != std::string::npos){
-		int filenamePosEnd = req.body.substr(filenamePos + 10).find("\"");
-		filename = req.body.substr(filenamePos + 10, filenamePosEnd);
-	}
-
 	int	contentTypePos = req.body.find("Content-Type");
 	if (contentTypePos != std::string::npos){
 		int	contentTypePosEnd = req.body.substr(contentTypePos + 14).find("\r\n");
 		contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
 	}
 
-	if (contentType != "image/png" && contentType != "image/jpeg")
+	if (contentType != "image/png" && contentType != "image/jpeg" && req.path != "/upload")
 		return makeResponse(server, 403, "Forbiden", "Forbiden");
+
+	int filenamePos = req.body.find("filename=\"");
+	if (filenamePos != std::string::npos){
+		int filenamePosEnd = req.body.substr(filenamePos + 10).find("\"");
+		filename = req.body.substr(filenamePos + 10, filenamePosEnd);
+	}
 
 	if (filename.empty())
 		filename = "default";
