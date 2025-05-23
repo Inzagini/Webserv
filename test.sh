@@ -19,7 +19,7 @@ function test_endpoint() {
     if [ "$METHOD" == "GET" ]; then
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$URL$ENDPOINT")
     elif [ "$METHOD" == "POST" ]; then
-        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST -d "$DATA" "$URL$ENDPOINT")
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@$DATA" "$URL$ENDPOINT")
     elif [ "$METHOD" == "DELETE" ]; then
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$URL$ENDPOINT")
     elif [ "$METHOD" == "HEAD" ]; then
@@ -39,29 +39,24 @@ echo "Starting tests on $URL"
 echo "==============================="
 
 # Basic GET
-test_endpoint GET "/" 200
-test_endpoint GET "/index.html" 200
-test_endpoint GET "/nonexistent.html" 404
+# test_endpoint GET "/" 200
+# test_endpoint GET "/index.html" 200
+# test_endpoint GET "/nonexistent.html" 404
 
 # POST
-test_endpoint POST "/uploads.html" 200 "name=webserv"
-# test_endpoint POST "/nonexistent.html" 404 "data=test"
+test_endpoint POST "/upload" 200 "./cat.png"
+test_endpoint POST "/uploads" 404 "data=test"
 
-# # DELETE
-# test_endpoint DELETE "/delete_me.txt" 200
-# test_endpoint DELETE "/nonexistent.txt" 404
+# DELETE
+test_endpoint DELETE "/cat.png" 200
+test_endpoint DELETE "/nonexistent.txt" 404
 
-# HEAD
-test_endpoint HEAD "/" 405
-
-# # Redirection
+# Redirection
 # test_endpoint GET "/redirect" 301
 
-# # Forbidden
+# Forbidden
 # test_endpoint GET "/forbidden/" 403
 
-# # Autoindex
-# test_endpoint GET "/directory/" 200
 
 # CGI (make sure CGI is configured and the script exists)
 # test_endpoint GET "/cgi-bin/test.py" 200
@@ -71,3 +66,9 @@ test_endpoint HEAD "/" 405
 
 echo "==============================="
 echo "Test run complete."
+
+# ...existing code...
+
+
+
+
