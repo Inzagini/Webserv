@@ -5,6 +5,7 @@
 #include <map>
 
 #include "server.hpp"
+#include "cgi.hpp"
 
 struct HttpRequest {
 	std::string	method;

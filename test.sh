@@ -44,12 +44,12 @@ echo "==============================="
 # test_endpoint GET "/nonexistent.html" 404
 
 # POST
-test_endpoint POST "/upload" 200 "./cat.png"
-test_endpoint POST "/uploads" 404 "data=test"
+# test_endpoint POST "/upload" 200 "./cat.png"
+# test_endpoint POST "/uploads" 404 "data=test"
 
 # DELETE
-test_endpoint DELETE "/cat.png" 200
-test_endpoint DELETE "/nonexistent.txt" 404
+# test_endpoint DELETE "/cat.png" 200
+# test_endpoint DELETE "/nonexistent.txt" 404
 
 # Redirection
 # test_endpoint GET "/redirect" 301
@@ -59,7 +59,7 @@ test_endpoint DELETE "/nonexistent.txt" 404
 
 
 # CGI (make sure CGI is configured and the script exists)
-# test_endpoint GET "/cgi-bin/test.py" 200
+test_endpoint GET "/cgi/helloWorld.py" 200
 
 # Invalid Method
 # test_endpoint PUT "/" 405

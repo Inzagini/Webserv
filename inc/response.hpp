@@ -2,8 +2,10 @@
 # define RESPONSE_HPP
 
 #include <string>
-#include "request.hpp"
 #include <sys/stat.h>
+#include "request.hpp"
+
+struct HttpRequest;
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server);
 std::string methodNotAllowedResponse(const ServerConfig &server);

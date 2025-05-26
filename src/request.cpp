@@ -1,6 +1,7 @@
 #include "request.hpp"
 #include "config.hpp"
 #include "response.hpp"
+#include "cgi.hpp"
 
 /*
 	parse the request to 3 part each seperated by empty line
@@ -44,8 +45,12 @@ HttpRequest parseHttpRequest(const char *rawInput)
 std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 {
 	std::string	bodyStr;
+	cgi			cgiO;
 
 	if (req.method == "GET"){
+		if (cgiO.isCgiPath(req.path)){
+			return cgiO.handleCGI(req, server);
+		}
 		return handleGet(req, server);
 	}
 	else if (req.method == "POST"){
