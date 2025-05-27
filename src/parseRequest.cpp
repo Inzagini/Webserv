@@ -18,7 +18,7 @@ HttpRequest parseHttpRequest(const char *rawInput)
 
 	parsePathQuery(req);
 
-	std::cout << "[path]: " << req.path << " | " << req.file << std::endl;
+	//std::cout << "[parse path]: " << req.path << " | " << req.file << std::endl;
 
 	while (std::getline(stream, line)){
 		if (!line.empty() && line[line.size() - 1] == '\r')
@@ -53,13 +53,14 @@ void	parsePathQuery(HttpRequest &req){
 	}
 
 	int lastSlashPos = pathOnly.rfind('/');
-	if (lastSlashPos != std::string::npos && lastSlashPos != 0){
-		req.path = pathOnly.substr(0, lastSlashPos + 1);
-		req.file = pathOnly.substr(lastSlashPos + 1);
+	if (lastSlashPos != std::string::npos){
+		if (pathOnly.find('.') != std::string::npos){
+			req.path = pathOnly.substr(0, lastSlashPos + 1);
+			req.file = pathOnly.substr(lastSlashPos + 1);
+		}
+		else
+			req.path = pathOnly.substr(lastSlashPos);
 		req.queryParams = parseQuery(query);
-	}
-	else if (lastSlashPos == 0){
-		req.path = pathOnly;
 	}
 	else{
 		req.path = "/";

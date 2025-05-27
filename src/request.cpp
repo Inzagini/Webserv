@@ -13,7 +13,6 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	for(ServerConfig::const_iterator it = server.locBegin();
 		it != server.locEnd(); it++){
 		if (it->path == path){
-			std::cout << it->path << " | " << path << std::endl;
 			validPath = true;
 			break;
 		}
