@@ -10,12 +10,13 @@
 #include "server.hpp"
 #include "response.hpp"
 
-struct HttpRequest;
+struct	HttpRequest;
 
-class cgi{
+class	cgi{
 
 	private:
 		std::vector<std::string>	env;
+		std::string					fullPath;
 
 	public:
 		std::string	handleCGI(const HttpRequest &req, const ServerConfig &server);
