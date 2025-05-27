@@ -23,6 +23,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 }
 
 /*
+	!!! have to change the code to accept location block name
 	parse the filename, file type, save the file to the /app/uploads
 */
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
@@ -48,7 +49,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 		filename = "default";
 
 	std::string filePath;
-	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
+	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){
 		if (it->path == "/upload"){
 			struct stat st;
 			if (stat(("." + it->upload_store).c_str(), &st) != 0){
@@ -72,7 +73,7 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	std::cout << req.requestPath << std::endl;
 	std::string	filePath;
 	struct stat st;
-	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
+	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){
 		if (it->path == "/upload"){
 			struct stat st;
 			filePath = "." + it->upload_store + "/" + req.requestPath;
