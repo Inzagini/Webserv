@@ -13,7 +13,7 @@ void printTokens(const std::vector<std::string>& tokens) {
 
 void printHttpRequest(const HttpRequest& req) {
     std::cout << "Method: " << req.method << std::endl;
-    std::cout << "Path: " << req.path << std::endl;
+    std::cout << "Path: " << req.requestPath << std::endl;
     std::cout << "Version: " << req.version << std::endl;
 
     std::cout << "Headers:" << std::endl;
@@ -23,4 +23,11 @@ void printHttpRequest(const HttpRequest& req) {
 
     std::cout << "Body:" << std::endl;
     std::cout << req.body << std::endl;
+}
+
+void printQueryParams(const std::map<std::string, std::string>& queryParams) {
+    for (std::map<std::string, std::string>::const_iterator it = queryParams.begin();
+         it != queryParams.end(); ++it) {
+        std::cout << it->first << " = " << it->second << std::endl;
+    }
 }

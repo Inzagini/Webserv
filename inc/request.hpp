@@ -9,17 +9,24 @@
 
 struct HttpRequest {
 	std::string	method;
+	std::string	requestPath;
 	std::string	path;
+	std::string	file;
 	std::string	version;
 	std::map<std::string, std::string>	headers;
+	std::map<std::string, std::string> queryParams;
 	std::string	body;
 };
 
-void printHttpRequest(const HttpRequest& req);
+void		printHttpRequest(const HttpRequest& req);
+void printQueryParams(const std::map<std::string, std::string>& queryParams);
+
 HttpRequest	parseHttpRequest(const char *rawInput);
 std::string	handleRequest(const HttpRequest &req, const ServerConfig &server);
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server);
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server);
 std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg);
 
+std::vector<std::string>	split(const std::string &s, char delim);
+std::map<std::string, std::string>	parseQuery(const std::string &s);
 #endif

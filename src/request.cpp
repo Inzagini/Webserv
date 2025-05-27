@@ -17,7 +17,28 @@ HttpRequest parseHttpRequest(const char *rawInput)
 
 	std::getline(stream, line);
 	std::istringstream	requestLine(line);
-	requestLine >> req.method >> req.path >> req.version;
+	requestLine >> req.method >> req.requestPath >> req.version;
+
+	int queryPos = req.requestPath.find('?');
+	std::string pathOnly = req.requestPath;
+	std::string query = "";
+	if (queryPos != std::string::npos){
+		query = req.requestPath.substr(queryPos + 1);
+		pathOnly = req.requestPath.substr(0, queryPos);
+	}
+
+	int lastSlashPos = pathOnly.rfind('/');
+	if (lastSlashPos != std::string::npos){
+		req.path = pathOnly.substr(0, lastSlashPos + 1);
+		req.file = pathOnly.substr(lastSlashPos + 1);
+		req.queryParams = parseQuery(query);
+	}
+	else{
+		req.path = "/";
+		req.file = pathOnly;
+	}
+
+	std::cout << "[path]: " << req.path << " | " << req.file << std::endl;
 
 	while (std::getline(stream, line)){
 		if (!line.empty() && line[line.size() - 1] == '\r')
@@ -48,7 +69,7 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	cgi			cgiO;
 
 	if (req.method == "GET"){
-		if (cgiO.isCgiPath(req.path)){
+		if (cgiO.isCgiPath(req.requestPath)){
 			return cgiO.handleCGI(req, server);
 		}
 		return handleGet(req, server);
@@ -95,4 +116,35 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 		fileContent.close();
 	}
 	return bodyStr;
+}
+
+std::vector<std::string>	split(const std::string &s, char delim){
+	std::string	word;
+	std::stringstream ss(s);
+	std::vector<std::string>	tokens;
+
+	while (std::getline(ss, word, delim)){
+		tokens.push_back(word);
+	}
+	return tokens;
+}
+
+std::map<std::string, std::string>	parseQuery(const std::string &s){
+	std::map<std::string, std::string>	params;
+	std::vector<std::string>			pairs = split(s, '&');
+
+	for(size_t i = 0; i < pairs.size(); i++){
+		std::string key, value;
+		int	equalPos = pairs[i].find('=');
+		if (equalPos != std::string::npos){
+			key = pairs[i].substr(0, equalPos);
+			value = pairs[i].substr(equalPos + 1);
+		}
+		else{
+			key = pairs[i];
+			value = "";
+		}
+		params[key] = value;
+	}
+	return params;
 }

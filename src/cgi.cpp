@@ -20,11 +20,13 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	int	out[2];
 
 	if (pipe(out) < 0)
-		return ""; //need some kind of the error
-
+		return makeResponse(server, 500, "Internal Server Error", "Failed to create Pipe");
 	pid_t pid = fork();
-	if (pid < 0)
-		return ""; //need some kind of error
+	if (pid < 0){
+		close(out[1]);
+		close(out[0]);
+		return makeResponse(server, 500, "Internal Server Error", "Failed to fork");
+	}
 
 	if (pid == 0){
 		dup2(out[1], STDOUT_FILENO);

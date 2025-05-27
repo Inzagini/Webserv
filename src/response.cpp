@@ -4,9 +4,9 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	int			statusCode = -1;
 	std::string	bodyStr;
 	std::string	statusText;
-	std::string	filePath = "." + server.root + req.path;
+	std::string	filePath = "." + server.root + req.requestPath;
 
-	if (req.path == "/")
+	if (req.requestPath == "/")
 		filePath += server.index;
 
 	std::ifstream	fileContent(filePath.c_str());
@@ -35,7 +35,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 		contentType = req.body.substr(contentTypePos + 14, contentTypePosEnd);
 	}
 
-	if (contentType != "image/png" && contentType != "image/jpeg" && req.path != "/upload")
+	if (contentType != "image/png" && contentType != "image/jpeg" && req.requestPath != "/upload")
 		return makeResponse(server, 403, "Forbiden", "Forbiden");
 
 	int filenamePos = req.body.find("filename=\"");
@@ -69,13 +69,13 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 }
 
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
-	std::cout << req.path << std::endl;
+	std::cout << req.requestPath << std::endl;
 	std::string	filePath;
 	struct stat st;
 	for (std::vector<LocationConfig>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++){
 		if (it->path == "/upload"){
 			struct stat st;
-			filePath = "." + it->upload_store + "/" + req.path;
+			filePath = "." + it->upload_store + "/" + req.requestPath;
 			if (stat(filePath.c_str(), &st) != 0){
 				return makeResponse(server, 404, "Not found", "File doesn't exist");
 			}
