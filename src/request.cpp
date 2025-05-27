@@ -3,8 +3,24 @@
 
 std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 {
-	std::string	bodyStr;
 	cgi			cgiO;
+	bool		validPath = false;
+	std::string	bodyStr;
+	std::string	path = req.path;
+	if (path.size() > 1 && path[path.size() - 1] == '/')
+		path = path.erase(path.size() - 1);
+
+	for(ServerConfig::const_iterator it = server.locBegin();
+		it != server.locEnd(); it++){
+		if (it->path == path){
+			std::cout << it->path << " | " << path << std::endl;
+			validPath = true;
+			break;
+		}
+	}
+
+	if (!validPath)
+		return makeResponse(server, 404, "Not found", "Not found");
 
 	if (req.method == "GET"){
 		if (cgiO.isCgiPath(req.requestPath)){

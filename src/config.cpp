@@ -24,7 +24,6 @@ std::vector<std::string> Config::tokenize(const std::string &line, char delim) {
 			token.erase(token.size() - 1);
 		tokens.push_back(token);
 	}
-
 	return tokens;
 }
 
@@ -137,3 +136,5 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 std::vector<ServerConfig> &Config::getServer(){
 	return servers;
 }
+
+

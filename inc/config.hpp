@@ -30,6 +30,10 @@ struct ServerConfig
 	std::string					index;
 	std::map<int, std::string>	errorPages;
 	std::vector<LocationConfig>	locations;
+
+	typedef	std::vector<LocationConfig>::const_iterator const_iterator;
+	const_iterator				locBegin() const {return locations.begin();}
+	const_iterator				locEnd() const {return locations.end();}
 };
 
 class Config
@@ -45,6 +49,8 @@ class Config
 		std::vector<std::string>	tokenize(const std::string& line, char delim);
 		int							parseServerBlock(std::istream& file, ServerConfig &server);
 		int							parseLocationBlock(std::istream &file, LocationConfig &loc);
+
+
 
 };
 

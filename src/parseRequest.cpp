@@ -53,10 +53,13 @@ void	parsePathQuery(HttpRequest &req){
 	}
 
 	int lastSlashPos = pathOnly.rfind('/');
-	if (lastSlashPos != std::string::npos){
+	if (lastSlashPos != std::string::npos && lastSlashPos != 0){
 		req.path = pathOnly.substr(0, lastSlashPos + 1);
 		req.file = pathOnly.substr(lastSlashPos + 1);
 		req.queryParams = parseQuery(query);
+	}
+	else if (lastSlashPos == 0){
+		req.path = pathOnly;
 	}
 	else{
 		req.path = "/";
