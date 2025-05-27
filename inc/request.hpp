@@ -6,6 +6,8 @@
 
 #include "server.hpp"
 #include "cgi.hpp"
+#include "config.hpp"
+#include "response.hpp"
 
 struct HttpRequest {
 	std::string	method;
@@ -22,6 +24,8 @@ void		printHttpRequest(const HttpRequest& req);
 void printQueryParams(const std::map<std::string, std::string>& queryParams);
 
 HttpRequest	parseHttpRequest(const char *rawInput);
+void		parsePathQuery(HttpRequest &req);
+
 std::string	handleRequest(const HttpRequest &req, const ServerConfig &server);
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server);
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server);
