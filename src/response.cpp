@@ -70,7 +70,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 }
 
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
-	std::cout << req.requestPath << std::endl;
+	std::cout << req.requestPath << "|" <<req.path << "|"<< req.file << std::endl;
 	std::string	filePath;
 	struct stat st;
 	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){

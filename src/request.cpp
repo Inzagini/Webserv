@@ -1,7 +1,7 @@
 #include "request.hpp"
 
 
-std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
+std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 {
 	cgi			cgiO;
 	bool		validPath = false;
@@ -10,10 +10,11 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	if (path.size() > 1 && path[path.size() - 1] == '/')
 		path = path.erase(path.size() - 1);
 
-	for(ServerConfig::const_iterator it = server.locBegin();
+	for (ServerConfig::const_iterator it = server.locBegin();
 		it != server.locEnd(); it++){
 		if (it->path == path){
 			validPath = true;
+			req.location = static_cast<LocationConfig>(*it);
 			break;
 		}
 	}
@@ -21,16 +22,16 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	if (!validPath)
 		return makeResponse(server, 404, "Not found", "Not found");
 
-	if (req.method == "GET"){
+	if (req.method == "GET" && isMethodAllowed(req.location.allow_method, "GET")){
 		if (cgiO.isCgiPath(req.requestPath)){
 			return cgiO.handleCGI(req, server);
 		}
 		return handleGet(req, server);
 	}
-	else if (req.method == "POST"){
+	else if (req.method == "POST" && isMethodAllowed(req.location.allow_method, "POST")){
 		return handlePost(req, server);
 	}
-	else if (req.method == "DELETE"){
+	else if (req.method == "DELETE" && isMethodAllowed(req.location.allow_method, "DELETE")){
 		return handleDelete(req, server);
 	}
 	else{
@@ -38,6 +39,16 @@ std::string	handleRequest(const HttpRequest &req, const ServerConfig &server)
 	}
 }
 
+
+bool	isMethodAllowed(const std::vector<std::string> &allowedMethod, std::string method){
+
+	for (std::vector<std::string>::const_iterator it = allowedMethod.begin();
+		it != allowedMethod.end(); it++){
+			if (*it == method)
+				return true;
+		}
+	return false;
+}
 
 /*
 	rootPath is the /app/html
