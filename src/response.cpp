@@ -70,14 +70,15 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 }
 
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
-	std::cout << req.requestPath << "|" <<req.path << "|"<< req.file << std::endl;
+	std::cout << "[Upload store]: " << req.location.upload_store << std::endl;
 	std::string	filePath;
 	struct stat st;
 	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){
 		if (it->path == "/upload"){
 			struct stat st;
-			filePath = "." + it->upload_store + "/" + req.requestPath;
+			filePath = "." + req.location.upload_store + "/" + req.file;
 			if (stat(filePath.c_str(), &st) != 0){
+				std::cerr << "File not found\n";
 				return makeResponse(server, 404, "Not found", "File doesn't exist");
 			}
 		}
@@ -87,6 +88,7 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 		std::cerr << "Faild to delete file: " << filePath << std::endl;
 		return makeResponse(server, 500, "Internal Server Error", "Failed to delete the file");
 	}
+	std::cout << "File Deleted: " + filePath << std::endl;
 	return makeResponse(server, 200, "OK", "OK");
 }
 
