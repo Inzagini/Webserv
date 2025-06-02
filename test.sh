@@ -43,7 +43,7 @@ echo "==============================="
 
 # POST
 # test_endpoint POST "/cat.png" 200 "./cat.png"
-# test_endpoint POST "/upload" 200 "./cat.png"
+test_endpoint POST "/upload" 200 "./cat.png"
 # test_endpoint POST "/uploads" 404 "./cat.png"
 
 # DELETE
@@ -60,7 +60,7 @@ echo "==============================="
 
 # CGI (make sure CGI is configured and the script exists)
 # test_endpoint GET "/cgi/helloWorld.py" 200
-test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 200
+# test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 200
 
 # Invalid Method
 # test_endpoint PUT "/" 405

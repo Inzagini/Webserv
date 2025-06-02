@@ -23,7 +23,7 @@ class	cgi{
 		~cgi();
 
 	public:
-		std::string	handleGetCGI(const HttpRequest &req, const ServerConfig &server);
+		std::string	handleCGI(const HttpRequest &req, const ServerConfig &server);
 		bool	isCgiPath(const HttpRequest &req, const ServerConfig &server);
 		void	executor(const HttpRequest &req, int fd[2], pid_t pid, std::string &response);
 };

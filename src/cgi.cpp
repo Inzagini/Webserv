@@ -27,11 +27,11 @@ bool	cgi::isCgiPath(const HttpRequest &req, const ServerConfig &server){
 	return false;
 }
 
-std::string	cgi::handleGetCGI(const HttpRequest &req, const ServerConfig &server){
+std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	std::string	response = "";
 	int	fd[2];
-
 	struct stat	st;
+
 	if (stat(this->fullPath.c_str(), &st) != 0)
 		return makeResponse(server, 404, "Not Found", "Not found");
 

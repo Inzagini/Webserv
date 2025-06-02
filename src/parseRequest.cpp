@@ -18,8 +18,6 @@ HttpRequest parseHttpRequest(const char *rawInput)
 
 	parsePathQuery(req);
 
-	//std::cout << "[parse path]: " << req.path << " | " << req.file << std::endl;
-
 	while (std::getline(stream, line)){
 		if (!line.empty() && line[line.size() - 1] == '\r')
 			line.erase(line.size() - 1);

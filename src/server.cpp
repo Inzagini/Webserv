@@ -50,18 +50,18 @@ int	setSocket(ServerConfig &server)
 */
 int	Server::connectionHandle(ServerConfig &server){
 	while (true) {
-		int pollCount = poll(fds.data(), fds.size(), -1);
+		int	pollCount = poll(fds.data(), fds.size(), -1);
 		if (pollCount < 0)
 			continue;
 
 		for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
 			if (fds[i].revents & POLLIN) {
-				int fd = fds[i].fd;
+				int	fd = fds[i].fd;
 				if (this->isServerCheck(fd))
 					this->clientHandle(fd);
 				else {
-					char buffer[4096];
-					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
+					char	buffer[4096];
+					ssize_t	bytesRead = recv(fd, buffer, sizeof(buffer), 0);
 					if (bytesRead > 0) {
 						buffers[fd].append(buffer, bytesRead);
 						if (!headerParsed[fd])
@@ -143,19 +143,18 @@ void	Server::ReqRespHandle(int fd, ServerConfig &server){
 
 void	Server::clientDisconnect(int fd, int i){
 	std::cout << "[Client disconnected]\n";
-	close(fd);
 	fds.erase(fds.begin() + i);
 	buffers.erase(fd);
 	headerParsed.erase(fd);
 	expectedBodyLen.erase(fd);
 	parsedRequest.erase(fd);
+	close(fd);
 }
 
 bool	Server::isServerCheck(int fd){
 	for (size_t j = 0; j < serverFds.size(); ++j) {
-		if (fd == serverFds[j]) {
+		if (fd == serverFds[j])
 			return true;
-		}
 	}
 	return false;
 }
