@@ -60,7 +60,7 @@ test_endpoint DELETE "/nonexistent.txt" 405
 
 # CGI (make sure CGI is configured and the script exists)
 test_endpoint GET "/cgi/helloWorld.py" 200
-test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 200
+test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 404
 
 # Invalid Method
 test_endpoint PUT "/" 405

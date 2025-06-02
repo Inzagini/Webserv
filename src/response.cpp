@@ -57,7 +57,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 
 	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
-	if (stat(filePath.c_str(), &st) != 0){
+	if (stat(("." + savePath).c_str(), &st) != 0){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
 			std::cerr << "Failed to create directory: " << "." + savePath << std::endl;
 			return makeResponse(server, 500, "Internal Server Error", "Failed to create upload directory");
@@ -135,7 +135,9 @@ bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string
 		outFile.write(content.c_str(), content.size());
 		outFile.close();
 		std::cout << "File saved to: " << filePath << std::endl;
+		return true;
 	}
 	else
 		std::cerr << "Failed to save file: " << filePath << std::endl;
+		return false;
 }
