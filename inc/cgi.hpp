@@ -25,6 +25,6 @@ class	cgi{
 	public:
 		std::string	handleGetCGI(const HttpRequest &req, const ServerConfig &server);
 		bool	isCgiPath(const HttpRequest &req, const ServerConfig &server);
-		void	executor(int fd[2], pid_t pid,std::string &response);
+		void	executor(const HttpRequest &req, int fd[2], pid_t pid, std::string &response);
 };
 #endif

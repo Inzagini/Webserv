@@ -43,21 +43,26 @@ std::string	cgi::handleGetCGI(const HttpRequest &req, const ServerConfig &server
 		close(fd[0]);
 		return makeResponse(server, 500, "Internal Server Error", "Failed to fork");
 	}
-	executor(fd, pid, response);
+	executor(req, fd, pid, response);
 	std::cout << "[Responded]: " << response << std::endl;
 	return makeResponse(server, 200, " OK ",response);
 }
 
-void	cgi::executor(int fd[2], pid_t pid,std::string &response){
+void	cgi::executor(const HttpRequest &req, int fd[2], pid_t pid,std::string &response){
 	if (pid == 0){
+		if (req.method == "POST" && req.body.size() > 0)
+			dup2(fd[0], STDIN_FILENO);
+		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
-		close(fd[0]);
 
 		char *args[] = { (char*)"/usr/bin/python3", const_cast<char *>(this->fullPath.c_str()), NULL};
 		execve(args[0], args, const_cast<char* const*>(&env[0]));
 		exit(1);
 	}
+
+	if (req.method == "POST" && req.body.size() > 0)
+		write(fd[1], req.body.c_str(), req.body.size());
 	close(fd[1]);
 
 	char		buffer[4096];
