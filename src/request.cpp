@@ -9,7 +9,7 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 	std::string	path = req.path;
 	if (path.size() > 1 && path[path.size() - 1] == '/')
 		path = path.erase(path.size() - 1);
-
+	std::cout << "[path] " << path << std::endl;
 	for (ServerConfig::const_iterator it = server.locBegin();
 		it != server.locEnd(); it++){
 		if (it->path == path){
@@ -19,8 +19,11 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 		}
 	}
 
+
 	if (!validPath)
 		return makeResponse(server, 404, "Not found", "Not found");
+	if (!isMethodAllowed(req.location.allow_method, req.method))
+		return methodNotAllowedResponse(server);
 
 	if (req.method == "GET" && isMethodAllowed(req.location.allow_method, "GET")){
 		if (cgiO.isCgiPath(req.requestPath)){
