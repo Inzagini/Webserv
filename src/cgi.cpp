@@ -1,50 +1,75 @@
 #include "cgi.hpp"
 
 /*
-	maybe change this to the
+	check for .py
 */
-bool	cgi::isCgiPath(std::string path){
-	int	cgipos = path.find("/cgi/");
-	if (cgipos == std::string::npos)
+bool	cgi::isCgiPath(const HttpRequest &req, const ServerConfig &server){
+	int	cgiPos = req.file.find(".py");
+	if (cgiPos == std::string::npos)
 		return false;
 
-	this->fullPath = "./app/cgi/" + path.substr(cgipos + 5);
-	struct stat	st;
-	if (stat(this->fullPath.c_str(), &st) == 0)
+	std::string	savePath;
+	if (req.location.cgiPath.empty())
+		savePath = server.root;
+	else
+		savePath = req.location.cgiPath;
+	this->fullPath = "." + savePath + "/" +req.file;
+	if (req.file[cgiPos + 3] == '\0'){
+		std::string	param;
+		for (std::map<std::string, std::string>::const_iterator it = req.queryParams.begin();
+			it != req.queryParams.end(); it++){
+				param = it->first + "=" + it->second;
+				env.push_back(strdup(param.c_str()));
+		}
+		env.push_back(NULL);
 		return true;
+	}
 	return false;
 }
 
-std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
+std::string	cgi::handleGetCGI(const HttpRequest &req, const ServerConfig &server){
 	std::string	response = "";
-	int	out[2];
+	int	fd[2];
 
-	if (pipe(out) < 0)
+	struct stat	st;
+	if (stat(this->fullPath.c_str(), &st) != 0)
+		return makeResponse(server, 404, "Not Found", "Not found");
+
+	if (pipe(fd) < 0)
 		return makeResponse(server, 500, "Internal Server Error", "Failed to create Pipe");
 	pid_t pid = fork();
 	if (pid < 0){
-		close(out[1]);
-		close(out[0]);
+		close(fd[1]);
+		close(fd[0]);
 		return makeResponse(server, 500, "Internal Server Error", "Failed to fork");
 	}
+	executor(fd, pid, response);
+	std::cout << "[Responded]: " << response << std::endl;
+	return makeResponse(server, 200, " OK ",response);
+}
 
+void	cgi::executor(int fd[2], pid_t pid,std::string &response){
 	if (pid == 0){
-		dup2(out[1], STDOUT_FILENO);
-		close(out[1]);
-		close(out[0]);
+		dup2(fd[1], STDOUT_FILENO);
+		close(fd[1]);
+		close(fd[0]);
 
 		char *args[] = { (char*)"/usr/bin/python3", const_cast<char *>(this->fullPath.c_str()), NULL};
-		execve(args[0], args, NULL);
+		execve(args[0], args, const_cast<char* const*>(&env[0]));
 		exit(1);
 	}
-	close(out[1]);
+	close(fd[1]);
 
 	char		buffer[4096];
 	ssize_t		len;
-	while ((len = read(out[0], buffer, sizeof(buffer))) > 0)
+	while ((len = read(fd[0], buffer, sizeof(buffer))) > 0)
 		response.append(buffer, len);
-	close(out[0]);
+	close(fd[0]);
+}
 
-	std::cout << "[Response]: " << response << std::endl;
-	return makeResponse(server, 200, " OK ",response);
+cgi::~cgi(){
+	for (std::vector<const char *>::iterator it = this->env.begin(); it != this->env.end(); it++){
+		free ((void *)*it);
+	}
+	env.clear();
 }

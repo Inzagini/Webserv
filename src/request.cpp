@@ -26,9 +26,8 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 		return methodNotAllowedResponse(server);
 
 	if (req.method == "GET"){
-		if (cgiO.isCgiPath(req.requestPath)){
-			return cgiO.handleCGI(req, server);
-		}
+		if (cgiO.isCgiPath(req, server))
+			return cgiO.handleGetCGI(req, server);
 		return handleGet(req, server);
 	}
 	else if (req.method == "POST"){

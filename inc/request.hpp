@@ -24,7 +24,7 @@ struct HttpRequest {
 struct LocationCongig;
 
 void		printHttpRequest(const HttpRequest& req);
-void printQueryParams(const std::map<std::string, std::string>& queryParams);
+void		printQueryParams(const std::map<std::string, std::string>& queryParams);
 
 HttpRequest	parseHttpRequest(const char *rawInput);
 void		parsePathQuery(HttpRequest &req);

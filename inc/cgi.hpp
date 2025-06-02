@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <vector>
+#include <string.h>
 
 #include "request.hpp"
 #include "server.hpp"
@@ -15,12 +16,15 @@ struct	HttpRequest;
 class	cgi{
 
 	private:
-		std::vector<std::string>	env;
+		std::vector<const char *>	env;
 		std::string					fullPath;
 
 	public:
-		std::string	handleCGI(const HttpRequest &req, const ServerConfig &server);
-		bool	isCgiPath(std::string path);
-};
+		~cgi();
 
+	public:
+		std::string	handleGetCGI(const HttpRequest &req, const ServerConfig &server);
+		bool	isCgiPath(const HttpRequest &req, const ServerConfig &server);
+		void	executor(int fd[2], pid_t pid,std::string &response);
+};
 #endif
