@@ -25,16 +25,16 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 	if (!isMethodAllowed(req.location.allow_method, req.method))
 		return methodNotAllowedResponse(server);
 
-	if (req.method == "GET" && isMethodAllowed(req.location.allow_method, "GET")){
+	if (req.method == "GET"){
 		if (cgiO.isCgiPath(req.requestPath)){
 			return cgiO.handleCGI(req, server);
 		}
 		return handleGet(req, server);
 	}
-	else if (req.method == "POST" && isMethodAllowed(req.location.allow_method, "POST")){
+	else if (req.method == "POST"){
 		return handlePost(req, server);
 	}
-	else if (req.method == "DELETE" && isMethodAllowed(req.location.allow_method, "DELETE")){
+	else if (req.method == "DELETE"){
 		return handleDelete(req, server);
 	}
 	else{

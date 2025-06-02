@@ -23,8 +23,8 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 }
 
 /*
-	!!! have to change the code to accept location block name
-	parse the filename, file type, save the file to the /app/uploads
+	parse the filename, file type, save the file to asigned location.
+	If not define save to the root
 */
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string	filename;
@@ -48,44 +48,52 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (filename.empty())
 		filename = "default";
 
-	std::string filePath;
-	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){
-		if (it->path == "/upload"){
-			struct stat st;
-			if (stat(("." + it->upload_store).c_str(), &st) != 0){
-				if (mkdir(("." + it->upload_store).c_str(), 0755) != 0) {
-					std::cerr << "Failed to create directory: " << "." + it->upload_store<< std::endl;
-					return makeResponse(server, 500, "Internal Server Error", "Failed to create upload directory");
-				}
-			}
-			filePath = "." + it->upload_store + "/" + filename;
+	std::string	filePath;
+	std::string	savePath;
+	if (req.location.upload_store.empty())
+		savePath = server.root;
+	else
+		savePath = req.location.upload_store;
+
+	filePath = "." + savePath + "/" + req.file;
+	struct stat st;
+	if (stat(filePath.c_str(), &st) != 0){
+		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
+			std::cerr << "Failed to create directory: " << "." + savePath << std::endl;
+			return makeResponse(server, 500, "Internal Server Error", "Failed to create upload directory");
 		}
 	}
+	filePath = "." + savePath + "/" + filename;
 
 	if (filePath.empty())
 		return makeResponse(server, 404, "Not found", "Failed to save file");
 
-	std::string response = writeToFile(req, server, filePath);
-	return response;
+	if (writeToFile(req, server, filePath) == true)
+		return makeResponse(server, 200, " OK", "File uploaded successfully");
+	else
+		return makeResponse(server, 500, "Internal Server Error", "Failed to save file");
 }
 
+/*
+	try to find the file and delete
+*/
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
-	std::cout << "[Upload store]: " << req.location.upload_store << std::endl;
 	std::string	filePath;
+	std::string	savePath;
+	if (req.location.upload_store.empty())
+		savePath = server.root;
+	else
+		savePath = req.location.upload_store;
+
+	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
-	for (ServerConfig::const_iterator it = server.locBegin(); it != server.locEnd(); it++){
-		if (it->path == "/upload"){
-			struct stat st;
-			filePath = "." + req.location.upload_store + "/" + req.file;
-			if (stat(filePath.c_str(), &st) != 0){
-				std::cerr << "File not found\n";
-				return makeResponse(server, 404, "Not found", "File doesn't exist");
-			}
-		}
+	if (stat(filePath.c_str(), &st) != 0){
+		std::cerr << "File not found\n";
+		return makeResponse(server, 404, "Not found", "File doesn't exist");
 	}
 
 	if (remove(filePath.c_str()) != 0) {
-		std::cerr << "Faild to delete file: " << filePath << std::endl;
+		std::cerr << "Fail to delete file: " << filePath << std::endl;
 		return makeResponse(server, 500, "Internal Server Error", "Failed to delete the file");
 	}
 	std::cout << "File Deleted: " + filePath << std::endl;
@@ -116,7 +124,7 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 	return response.str();
 }
 
-std::string	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string filePath)
+bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string filePath)
 {
 	int contentStart = req.body.find("\r\n\r\n");
 	int contentEnd = req.body.substr(contentStart + 4).find("----");
@@ -127,10 +135,7 @@ std::string	writeToFile(const HttpRequest &req, const ServerConfig &server, std:
 		outFile.write(content.c_str(), content.size());
 		outFile.close();
 		std::cout << "File saved to: " << filePath << std::endl;
-		return makeResponse(server, 200, " OK", "File uploaded successfully");
 	}
-	else {
+	else
 		std::cerr << "Failed to save file: " << filePath << std::endl;
-		return makeResponse(server, 500, "Internal Server Error", "Failed to save file");
-	}
 }

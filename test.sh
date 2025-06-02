@@ -13,9 +13,7 @@ function test_endpoint() {
     ENDPOINT=$2
     EXPECTED_CODE=$3
     DATA=$4
-
     echo -n "[$METHOD $ENDPOINT] Expected: $EXPECTED_CODE -> "
-
     if [ "$METHOD" == "GET" ]; then
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$URL$ENDPOINT")
     elif [ "$METHOD" == "POST" ]; then
@@ -27,7 +25,6 @@ function test_endpoint() {
     else
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X "$METHOD" "$URL$ENDPOINT")
     fi
-
     if [ "$RESPONSE" == "$EXPECTED_CODE" ]; then
         echo -e "${GREEN}PASS${NC}"
     else
@@ -45,11 +42,12 @@ test_endpoint GET "/uploads.html" 200
 test_endpoint GET "/nonexistent.html" 404
 
 # POST
-test_endpoint POST "/test.txt" 200 "./test.txt"
+test_endpoint POST "/cat.png" 200 "./cat.png"
 test_endpoint POST "/upload" 200 "./cat.png"
 test_endpoint POST "/uploads" 404 "./cat.png"
 
 # DELETE
+test_endpoint DELETE "/cat.png" 405
 test_endpoint DELETE "/upload/cat.png" 200
 test_endpoint DELETE "/nonexistent.txt" 405
 
@@ -70,7 +68,7 @@ test_endpoint PUT "/" 405
 echo "==============================="
 echo "Test run complete."
 
-# ...existing code...
+
 
 
 
