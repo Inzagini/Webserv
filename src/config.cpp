@@ -60,6 +60,7 @@ int	Config::load(std::string filename)
 int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 {
 	std::string line;
+	server.redirect = false;
 
 	while (std::getline(file, line)) {
 		line = trim(line);
@@ -85,15 +86,20 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 			server.listenIP = tokens[1].substr(0, colon);
 			server.listenPort = std::atoi(tokens[1].substr(colon + 1).c_str());
 		}
-		else if (tokens[0] == "server_name" && tokens.size() > 1)
-			server.server_name = tokens[1];
-		else if (tokens[0] == "root" && tokens.size() > 1)
+		else if (tokens[0] == "server_name" && tokens.size() == 2)
+			server.serverName = tokens[1];
+		else if (tokens[0] == "root" && tokens.size() == 2)
 			server.root = tokens[1];
-		else if (tokens[0] == "index" && tokens.size() > 1)
+		else if (tokens[0] == "index" && tokens.size() == 2)
 			server.index = tokens[1];
-		else if (tokens[0] == "error_page" && tokens.size() > 1){
+		else if (tokens[0] == "error_page" && tokens.size() == 3){
 			int code = std::atoi(tokens[1].c_str());
 			server.errorPages[code] = tokens[2];
+		}
+		else if (tokens[0] == "return" && tokens.size() == 3){
+			server.redirect = true;
+			server.redirectCode = std::atoi(tokens[1].c_str());
+			server.redirectAddress = tokens[2];
 		}
 		else {
 			std::cerr << "Unknow key: " << tokens[0] << std::endl;
@@ -109,6 +115,7 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 {
 	std::string line;
+	loc.redirect = false;
 
 	while (std::getline(file, line)) {
 		line = trim(line);
@@ -119,12 +126,17 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 
 		if (tokens[0] == "allow_method") {
 			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
-				loc.allow_method.push_back(*it);
+				loc.allowMethod.push_back(*it);
 		}
 		else if (tokens[0] == "upload_store" && tokens.size() > 1)
-			loc.upload_store = tokens[1];
+			loc.uploadStore = tokens[1];
 		else if (tokens[0] == "cgi_pass" && tokens.size() > 1)
 			loc.cgiPath = tokens[1];
+		else if (tokens[0] == "return" && tokens.size() == 3){
+			loc.redirect = true;
+			loc.redirectCode = std::atoi(tokens[1].c_str());
+			loc.redirectAddress = tokens[2];
+		}
 		else {
 			std::cerr << "Unknow key: " << tokens[0] << std::endl;
 			return EXIT_FAILURE;

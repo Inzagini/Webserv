@@ -17,17 +17,23 @@ struct LocationConfig
 {
 	std::string	path;
 	std::string	cgiPath;
-	std::string	upload_store;
-	std::vector<std::string>	allow_method;
+	std::string	uploadStore;
+	bool		redirect;
+	int			redirectCode;
+	std::string	redirectAddress;
+	std::vector<std::string>	allowMethod;
 };
 
 struct ServerConfig
 {
 	int							listenPort;
 	std::string					listenIP;
-	std::string					server_name;
+	std::string					serverName;
 	std::string					root;
 	std::string					index;
+	std::string					redirectAddress;
+	bool						redirect;
+	int							redirectCode;
 	std::map<int, std::string>	errorPages;
 	std::vector<LocationConfig>	locations;
 

@@ -8,11 +8,10 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath == "/")
 		filePath += server.index;
-
+	std::cout << "[GET File path]: " << filePath <<std::endl;
 	std::ifstream	fileContent(filePath.c_str());
-	if (!fileContent){
+	if (!fileContent)
 		return makeResponse(server, 404, " Not Found", bodyStr);
-	}
 	else{
 		std::ostringstream	body;
 		body << fileContent.rdbuf();
@@ -50,10 +49,10 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 
 	std::string	filePath;
 	std::string	savePath;
-	if (req.location.upload_store.empty())
+	if (req.location.uploadStore.empty())
 		savePath = server.root;
 	else
-		savePath = req.location.upload_store;
+		savePath = req.location.uploadStore;
 
 	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
@@ -80,10 +79,10 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	std::string	filePath;
 	std::string	savePath;
-	if (req.location.upload_store.empty())
+	if (req.location.uploadStore.empty())
 		savePath = server.root;
 	else
-		savePath = req.location.upload_store;
+		savePath = req.location.uploadStore;
 
 	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
@@ -110,13 +109,21 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 	std::ostringstream	response;
 
 	bodyStr = "<html><body><h1>" + bodyStr + "</h1></body></html>";
+	response << "HTTP/1.1 " << statusCode << " " << statusText <<"\r\n";
 	if (statusCode >= 400){
 		std::string body = ErrorContent(server, statusCode, bodyStr);
 		if (!body.empty())
 			bodyStr = body;
 	}
-	response << "HTTP/1.1 " << statusCode << statusText <<"\r\n"
-		<< "Content-Length: " << bodyStr.size() << "\r\n"
+	else if (statusCode >= 300 && statusCode < 400){
+		response << "Location: " << "https://google.com" << "\r\n"
+				<< "Content-Length: 0\r\n"
+				<< "Connection: close\r\n"
+				<< "\r\n";
+		return response.str();
+	}
+
+	response << "Content-Length: " << bodyStr.size() << "\r\n"
 		<< "Content-Type: text/html\r\n"
 		<< "\r\n"
 		<< bodyStr;

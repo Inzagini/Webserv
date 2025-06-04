@@ -7,9 +7,10 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 	bool		validPath = false;
 	std::string	bodyStr;
 	std::string	path = req.path;
+
 	if (path.size() > 1 && path[path.size() - 1] == '/')
 		path = path.erase(path.size() - 1);
-	std::cout << "[path] " << path << std::endl;
+
 	for (ServerConfig::const_iterator it = server.locBegin();
 		it != server.locEnd(); it++){
 		if (it->path == path){
@@ -19,26 +20,30 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 		}
 	}
 
+	if (server.redirect == true || req.location.redirect == true){
+		if (server.redirect == true)
+			return makeResponse(server, server.redirectCode, "Moved Permanently", "Redirect");
+		else if (req.location.redirect == true){
+			return makeResponse(server, req.location.redirectCode, "Moved Permanently", "Redirect");
+		}
+	}
 
 	if (!validPath)
 		return makeResponse(server, 404, "Not found", "Not found");
-	if (!isMethodAllowed(req.location.allow_method, req.method))
+	if (!isMethodAllowed(req.location.allowMethod, req.method))
 		return methodNotAllowedResponse(server);
 
-	if (req.method == "GET"){
-		if (cgiO.isCgiPath(req, server))
-			return cgiO.handleCGI(req, server);
+	if (cgiO.isCgiPath(req, server))
+		return cgiO.handleCGI(req, server);
+
+	if (req.method == "GET")
 		return handleGet(req, server);
-	}
-	else if (req.method == "POST"){
+	else if (req.method == "POST")
 		return handlePost(req, server);
-	}
-	else if (req.method == "DELETE"){
+	else if (req.method == "DELETE")
 		return handleDelete(req, server);
-	}
-	else{
+	else
 		return methodNotAllowedResponse(server);
-	}
 }
 
 

@@ -6,7 +6,8 @@ int main ()
 {
 	Config conf;
 	std::string filename = std::string("./conf.d/default.conf");
-	conf.load(filename);
+	if (conf.load(filename) == EXIT_FAILURE)
+		return EXIT_FAILURE;
 	Server server;
 	server.setServerFd(conf);
 	server.connectionHandle(conf.getServer()[0]);

@@ -103,7 +103,7 @@ void	Server::clientHandle(int fd){
 		newPfd.events = POLLIN;
 		newPfd.revents = 0;
 		fds.push_back(newPfd);
-		std::cout << "[Client connected]\n" << std::endl;
+		std::cout << "[Connection client id]: " << fd << std::endl;
 	}
 }
 
@@ -133,8 +133,8 @@ void	Server::headerParser(int fd){
 */
 void	Server::ReqRespHandle(int fd, ServerConfig &server){
 	parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
-	std::string full_response = handleRequest(parsedRequest[fd], server);
-	send(fd, full_response.c_str(), full_response.length(), 0);
+	std::string fullResponse = handleRequest(parsedRequest[fd], server);
+	send(fd, fullResponse.c_str(), fullResponse.length(), 0);
 	buffers[fd].erase(0, expectedBodyLen[fd]);
 	headerParsed[fd] = false;
 	expectedBodyLen[fd] = 0;
