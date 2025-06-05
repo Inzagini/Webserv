@@ -33,19 +33,19 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	struct stat	st;
 
 	if (stat(this->fullPath.c_str(), &st) != 0)
-		return makeResponse(server, 404, "Not Found", "Not found");
+		return makeResponse(server, 404, "Not found");
 
 	if (pipe(fd) < 0)
-		return makeResponse(server, 500, "Internal Server Error", "Failed to create Pipe");
+		return makeResponse(server, 500, "Failed to create Pipe");
 	pid_t pid = fork();
 	if (pid < 0){
 		close(fd[1]);
 		close(fd[0]);
-		return makeResponse(server, 500, "Internal Server Error", "Failed to fork");
+		return makeResponse(server, 500, "Failed to fork");
 	}
 	executor(req, fd, pid, response);
 	std::cout << "[Responded]: " << response << std::endl;
-	return makeResponse(server, 200, " OK ",response);
+	return makeResponse(server, 200, response);
 }
 
 void	cgi::executor(const HttpRequest &req, int fd[2], pid_t pid,std::string &response){

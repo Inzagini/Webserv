@@ -47,7 +47,8 @@ int	Config::load(std::string filename)
 			continue;
 		if (line == "server {"){
 			ServerConfig server;
-			parseServerBlock(file, server);
+			this->parseServerBlock(file, server);
+			this->setHttpStatusMsg(server);
 			servers.push_back(server);
 		}
 	}
@@ -69,15 +70,13 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 		std::vector<std::string> tokens = tokenize(line, ';');
 		if (tokens.empty()) continue;
 
-		if (tokens[0] == "location" && tokens.size() > 1)
-		{
+		if (tokens[0] == "location" && tokens.size() > 1){
 			LocationConfig loc;
 			loc.path = tokens[1];
-			parseLocationBlock(file, loc);
+			this->parseLocationBlock(file, loc);
 			server.locations.push_back(loc);
 		}
-		else if (tokens[0] == "listen" && tokens.size() > 1)
-		{
+		else if (tokens[0] == "listen" && tokens.size() > 1){
 			size_t colon = tokens[1].find(':');
 			if (colon == std::string::npos) {
 				std::cerr << "Missing ':' in " << tokens[1] << std::endl;
@@ -102,7 +101,7 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 			server.redirectAddress = tokens[2];
 		}
 		else {
-			std::cerr << "Unknow key: " << tokens[0] << std::endl;
+			std::cerr << "Unknow key: " << tokens[0] << " | " << tokens.size()<< std::endl;
 			return EXIT_FAILURE;
 		}
 	}
@@ -138,7 +137,7 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 			loc.redirectAddress = tokens[2];
 		}
 		else {
-			std::cerr << "Unknow key: " << tokens[0] << std::endl;
+			std::cerr << "Unknow key: " << tokens[0] << " | " << tokens.size()<< std::endl;
 			return EXIT_FAILURE;
 		}
 	}
@@ -149,4 +148,19 @@ std::vector<ServerConfig> &Config::getServer(){
 	return servers;
 }
 
-
+void	Config::setHttpStatusMsg(ServerConfig &server){
+	server.httpStatusMsg[200] = "OK";
+	server.httpStatusMsg[201] = "Created";
+	server.httpStatusMsg[204] = "No Content";
+	server.httpStatusMsg[301] = "Moved Permanently";
+	server.httpStatusMsg[302] = "Found";
+	server.httpStatusMsg[400] = "Bad Request";
+	server.httpStatusMsg[401] = "Unauthorized";
+	server.httpStatusMsg[403] = "Forbidden";
+	server.httpStatusMsg[404] = "Not Found";
+	server.httpStatusMsg[405] = "Method Not Allowed";
+	server.httpStatusMsg[500] = "Internal Server Error";
+	server.httpStatusMsg[501] = "Not Implemented";
+	server.httpStatusMsg[502] = "Bad Gateway";
+	server.httpStatusMsg[503] = "Service Unavailable";
+}

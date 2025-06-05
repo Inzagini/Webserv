@@ -61,7 +61,7 @@ test_endpoint GET "/redir" 301
 # CGI (make sure CGI is configured and the script exists)
 test_endpoint GET "/cgi/helloWorld.py" 200
 test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 200
-# test_endpoint POST "/cgi/image.py" 200 "./cat.png"
+test_endpoint POST "/cgi/helloWorld.py" 200 "./cat.png"
 
 
 # Invalid Method

@@ -22,14 +22,14 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 
 	if (server.redirect == true || req.location.redirect == true){
 		if (server.redirect == true)
-			return makeResponse(server, server.redirectCode, "Moved Permanently", "Redirect");
+			return makeResponse(server, server.redirectCode, "Redirect");
 		else if (req.location.redirect == true){
-			return makeResponse(server, req.location.redirectCode, "Moved Permanently", "Redirect");
+			return makeResponse(server, req.location.redirectCode, "Redirect");
 		}
 	}
 
 	if (!validPath)
-		return makeResponse(server, 404, "Not found", "Not found");
+		return makeResponse(server, 404, "Not found");
 	if (!isMethodAllowed(req.location.allowMethod, req.method))
 		return methodNotAllowedResponse(server);
 

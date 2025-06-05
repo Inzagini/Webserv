@@ -35,6 +35,7 @@ struct ServerConfig
 	bool						redirect;
 	int							redirectCode;
 	std::map<int, std::string>	errorPages;
+	std::map<int, std::string>	httpStatusMsg;
 	std::vector<LocationConfig>	locations;
 
 	typedef	std::vector<LocationConfig>::const_iterator const_iterator;
@@ -55,7 +56,7 @@ class Config
 		std::vector<std::string>	tokenize(const std::string& line, char delim);
 		int							parseServerBlock(std::istream& file, ServerConfig &server);
 		int							parseLocationBlock(std::istream &file, LocationConfig &loc);
-
+		void						setHttpStatusMsg(ServerConfig &server);
 
 
 };
