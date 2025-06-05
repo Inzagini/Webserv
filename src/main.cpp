@@ -10,7 +10,6 @@ int main ()
 		return EXIT_FAILURE;
 	Server server;
 	server.setServerFd(conf);
-	server.connectionHandle(conf.getServer()[0]);
-
+	server.connectionHandle();
 	return EXIT_SUCCESS;
 }

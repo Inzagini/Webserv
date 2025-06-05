@@ -44,7 +44,6 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 		return makeResponse(server, 500, "Failed to fork", "");
 	}
 	executor(req, fd, pid, response);
-	std::cout << "[Responded]: " << response << std::endl;
 	return makeResponse(server, 200, response, "");
 }
 

@@ -48,7 +48,7 @@ int	setSocket(ServerConfig &server)
 	call the request parsing
 	depend on result of request parse then server the correct webpage
 */
-int	Server::connectionHandle(ServerConfig &server){
+int	Server::connectionHandle(){
 	while (true) {
 		int	pollCount = poll(fds.data(), fds.size(), -1);
 		if (pollCount < 0)
@@ -67,7 +67,7 @@ int	Server::connectionHandle(ServerConfig &server){
 						if (!headerParsed[fd])
 							this->headerParser(fd);
 						if (buffers[fd].size() >= expectedBodyLen[fd])
-							this->ReqRespHandle(fd, server);
+							this->ReqRespHandle(fd);
 					}
 					else {
 						this->clientDisconnect(fd, i);
@@ -87,6 +87,7 @@ void	Server::setServerFd(Config conf)
 		if (serverFD < 0)
 			continue;
 		serverFds.push_back(serverFD);
+		serverFdToConfig[serverFD] = conf.getServer()[i];
 		struct pollfd pfd;
 		pfd.fd = serverFD;
 		pfd.events = POLLIN;
@@ -95,15 +96,16 @@ void	Server::setServerFd(Config conf)
 	}
 }
 
-void	Server::clientHandle(int fd){
-	int	clientFD = accept(fd, NULL, NULL);
-	if (clientFD > fd){
+void	Server::clientHandle(int serverFd){
+	int	clientFD = accept(serverFd, NULL, NULL);
+	if (clientFD > serverFd){
 		struct pollfd newPfd;
 		newPfd.fd = clientFD;
 		newPfd.events = POLLIN;
 		newPfd.revents = 0;
 		fds.push_back(newPfd);
-		std::cout << "[Connection client id]: " << fd << std::endl;
+		clientFdToConfig[clientFD] = serverFdToConfig[serverFd];
+		std::cout << "[Connection client id]: " << clientFD << std::endl;
 	}
 }
 
@@ -112,43 +114,44 @@ void	Server::clientHandle(int fd){
 	check for content if exist
 	then remove header from buffer
 */
-void	Server::headerParser(int fd){
-	size_t	headerEnd = buffers[fd].find("\r\n\r\n");
+void	Server::headerParser(int clientFd){
+	size_t	headerEnd = buffers[clientFd].find("\r\n\r\n");
 	if (headerEnd != std::string::npos) {
-		std::string headerPart = buffers[fd].substr(0, headerEnd + 4);
-		parsedRequest[fd] = parseHttpRequest(headerPart.c_str());
-		headerParsed[fd] = true;
+		std::string headerPart = buffers[clientFd].substr(0, headerEnd + 4);
+		parsedRequest[clientFd] = parseHttpRequest(headerPart.c_str());
+		headerParsed[clientFd] = true;
 
-		std::map<std::string, std::string>::iterator it = parsedRequest[fd].headers.find("Content-Length");
-		if (it != parsedRequest[fd].headers.end())
-			expectedBodyLen[fd] = std::atoi(it->second.c_str());
+		std::map<std::string, std::string>::iterator it = parsedRequest[clientFd].headers.find("Content-Length");
+		if (it != parsedRequest[clientFd].headers.end())
+			expectedBodyLen[clientFd] = std::atoi(it->second.c_str());
 		else
-			expectedBodyLen[fd] = 0;
-		buffers[fd].erase(0, headerEnd + 4); //remove header from buffer
+			expectedBodyLen[clientFd] = 0;
+		buffers[clientFd].erase(0, headerEnd + 4); //remove header from buffer
 	}
 }
 
 /*
 	function is called when got the full request
 */
-void	Server::ReqRespHandle(int fd, ServerConfig &server){
-	parsedRequest[fd].body = buffers[fd].substr(0, expectedBodyLen[fd]);
-	std::string fullResponse = handleRequest(parsedRequest[fd], server);
-	send(fd, fullResponse.c_str(), fullResponse.length(), 0);
-	buffers[fd].erase(0, expectedBodyLen[fd]);
-	headerParsed[fd] = false;
-	expectedBodyLen[fd] = 0;
-	parsedRequest.erase(fd);
+void	Server::ReqRespHandle(int clientFD){
+	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
+	ServerConfig server = clientFdToConfig[clientFD];
+	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
+	send(clientFD, fullResponse.c_str(), fullResponse.length(), 0);
+	buffers[clientFD].erase(0, expectedBodyLen[clientFD]);
+	headerParsed[clientFD] = false;
+	expectedBodyLen[clientFD] = 0;
+	parsedRequest.erase(clientFD);
 }
 
-void	Server::clientDisconnect(int fd, int i){
+void	Server::clientDisconnect(int clientFd, int i){
 	std::cout << "[Client disconnected]\n";
 	fds.erase(fds.begin() + i);
-	buffers.erase(fd);
-	headerParsed.erase(fd);
-	expectedBodyLen.erase(fd);
-	parsedRequest.erase(fd);
-	close(fd);
+	buffers.erase(clientFd);
+	headerParsed.erase(clientFd);
+	expectedBodyLen.erase(clientFd);
+	parsedRequest.erase(clientFd);
+	close(clientFd);
 }
 
 bool	Server::isServerCheck(int fd){

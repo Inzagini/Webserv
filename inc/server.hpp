@@ -23,17 +23,19 @@ class Server
 		std::map<int, bool> headerParsed;
 		std::map<int, size_t> expectedBodyLen;
 		std::map<int, HttpRequest> parsedRequest;
+		std::map<int, ServerConfig> serverFdToConfig;
+		std::map<int, ServerConfig> clientFdToConfig;
 
 	public:
 		void	setServerFd(Config conf);
-		int		connectionHandle(ServerConfig &server);
+		int		connectionHandle();
 
 	private:
 		bool	isServerCheck(int fd);
-		void	clientHandle(int fd);
-		void	headerParser(int fd);
-		void	ReqRespHandle(int fd, ServerConfig &server);
-		void	clientDisconnect(int fd, int i);
+		void	clientHandle(int serverFd);
+		void	headerParser(int clientFd);
+		void	ReqRespHandle(int clientFd);
+		void	clientDisconnect(int clientFD, int i);
 };
 
 int	setSocket(ServerConfig &server);
