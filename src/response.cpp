@@ -11,14 +11,14 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::cout << "[GET File path]: " << filePath <<std::endl;
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
-		return makeResponse(server, 404, bodyStr);
+		return makeResponse(server, 404, bodyStr, "");
 	else{
 		std::ostringstream	body;
 		body << fileContent.rdbuf();
 		bodyStr = body.str();
 		fileContent.close();
 	}
-	return makeResponse(server, 200, bodyStr);
+	return makeResponse(server, 200, bodyStr, "");
 }
 
 /*
@@ -36,7 +36,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	}
 
 	if (contentType != "image/png" && contentType != "image/jpeg" && req.requestPath != "/upload")
-		return makeResponse(server, 403, "Forbiden");
+		return makeResponse(server, 403, "Forbiden", "");
 
 	int filenamePos = req.body.find("filename=\"");
 	if (filenamePos != std::string::npos){
@@ -59,18 +59,18 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (stat(("." + savePath).c_str(), &st) != 0){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
 			std::cerr << "Failed to create directory: " << "." + savePath << std::endl;
-			return makeResponse(server, 500, "Failed to create upload directory");
+			return makeResponse(server, 500, "Failed to create upload directory", "");
 		}
 	}
 	filePath = "." + savePath + "/" + filename;
 
 	if (filePath.empty())
-		return makeResponse(server, 404, "Failed to save file");
+		return makeResponse(server, 404, "Failed to save file", "");
 
 	if (writeToFile(req, server, filePath) == true)
-		return makeResponse(server, 200, "File uploaded successfully");
+		return makeResponse(server, 200, "File uploaded successfully", "");
 	else
-		return makeResponse(server, 500,  "Failed to save file");
+		return makeResponse(server, 500,  "Failed to save file", "");
 }
 
 /*
@@ -88,23 +88,23 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	struct stat st;
 	if (stat(filePath.c_str(), &st) != 0){
 		std::cerr << "File not found\n";
-		return makeResponse(server, 404, "File doesn't exist");
+		return makeResponse(server, 404, "File doesn't exist", "");
 	}
 
 	if (remove(filePath.c_str()) != 0) {
 		std::cerr << "Fail to delete file: " << filePath << std::endl;
-		return makeResponse(server, 500, "Failed to delete the file");
+		return makeResponse(server, 500, "Failed to delete the file", "");
 	}
 	std::cout << "File Deleted: " + filePath << std::endl;
-	return makeResponse(server, 200, "OK");
+	return makeResponse(server, 200, "OK", "");
 }
 
 //will and a static page later
 std::string methodNotAllowedResponse(const ServerConfig &server) {
-	return makeResponse(server, 405, " Method Not Allowed");
+	return makeResponse(server, 405, " Method Not Allowed", "");
 }
 
-std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr)
+std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir)
 {
 	std::ostringstream	response;
 
@@ -117,7 +117,7 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 			bodyStr = body;
 	}
 	else if (statusCode >= 300 && statusCode < 400){
-		response << "Location: " << "https://google.com" << "\r\n"
+		response << "Location: " << redir << "\r\n"
 				<< "Content-Length: 0\r\n"
 				<< "Connection: close\r\n"
 				<< "\r\n";
