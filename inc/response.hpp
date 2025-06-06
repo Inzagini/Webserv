@@ -4,6 +4,7 @@
 #include <string>
 #include <sys/stat.h>
 #include "request.hpp"
+#include "utils.hpp"
 
 struct HttpRequest;
 

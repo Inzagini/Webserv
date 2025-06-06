@@ -3,8 +3,9 @@ NAME:= webserv
 CFLAGS:= -std=c++98  -g
 INCLUDES:= inc
 SRC_DIR:= src
-SRCS:= main.cpp cgi.cpp config.cpp parseRequest.cpp request.cpp response.cpp server.cpp TO_DELETE.cpp
+SRCS:= main.cpp cgi.cpp config.cpp parseRequest.cpp request.cpp response.cpp server.cpp utils.cpp
 OBJS = $(SRCS:%.cpp=$(SRC_DIR)/%.o)
+FILEPATH = ./conf.d/default.conf
 
 all: $(NAME)
 
@@ -22,7 +23,7 @@ fclean: clean
 
 re: fclean all
 
-t:
-	./webserv
+t: re
+	./webserv $(FILEPATH)
 
 .PHONY: clean fclean re all

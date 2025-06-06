@@ -8,20 +8,25 @@
 */
 int	setSocket(ServerConfig &server)
 {
+	std::ostringstream msg;
+
 	int serverFD = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverFD < 0) {
-		std::cerr << "Error: socket creation failed" << std::endl;
+		msg << "Error: socket creation failed - " << strerror(errno) << std::endl;
+		logPrint("ERROR", msg.str());
 		return -1;
 	}
 
 	int opt = 1;
 	if (setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "Error: setsockopt failed" << std::endl;
+		msg << "Error: setsockopt failed - " << strerror(errno) << std::endl;
+		logPrint("ERROR", msg.str());
 		return (close(serverFD), -1);
 	}
 
 	if (fcntl(serverFD, F_SETFL, O_NONBLOCK) < 0){
-		std::cerr << "Error: setting non-blocking failed" << std::endl;
+		msg << "Error: setting non-blocking failed - " << strerror(errno) << std::endl;
+		logPrint("ERROR", msg.str());
 		return (close (serverFD), -1);
 	}
 
@@ -31,15 +36,19 @@ int	setSocket(ServerConfig &server)
 	addr.sin_addr.s_addr = inet_addr(server.listenIP.c_str());
 
 	if (bind(serverFD, (sockaddr*)&addr, sizeof(addr)) < 0){
-		std::cerr << "Error: bind" << std::endl;
+		msg << "Error: bind - " << strerror(errno) << std::endl;
+		logPrint("ERROR", msg.str());
 		return (close (serverFD), -1);
 	}
 
 	if	(listen(serverFD, 10) < 0){
-		std::cerr << "Error: listen" << std::endl;
+		msg << "Error: listen - " << strerror(errno) << std::endl;
+		logPrint("ERROR", msg.str());
 		return (close (serverFD), -1);
 	}
-	std::cout << "Listening " << server.listenIP << " on port " << server.listenPort << std::endl;
+
+	msg << "Listening " << server.listenIP << " on port " << server.listenPort << std::endl;
+	logPrint("INFO", msg.str());
 	return serverFD;
 }
 
@@ -105,7 +114,11 @@ void	Server::clientHandle(int serverFd){
 		newPfd.revents = 0;
 		fds.push_back(newPfd);
 		clientFdToConfig[clientFD] = serverFdToConfig[serverFd];
-		std::cout << "[Connection client id]: " << clientFD << std::endl;
+		std::ostringstream msg;
+		msg << "Client: " << clientFD << " connected to server "
+			<< serverFdToConfig[serverFd].listenIP << ":"
+			<< serverFdToConfig[serverFd].listenPort << std::endl;
+		logPrint("INFO", msg.str());
 	}
 }
 
@@ -134,10 +147,15 @@ void	Server::headerParser(int clientFd){
 	function is called when got the full request
 */
 void	Server::ReqRespHandle(int clientFD){
+	std::ostringstream msg;
+	msg << "Received request from client: " << clientFD << std::endl;
+	logPrint("INFO", msg.str());
 	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
+
 	ServerConfig server = clientFdToConfig[clientFD];
 	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
 	send(clientFD, fullResponse.c_str(), fullResponse.length(), 0);
+
 	buffers[clientFD].erase(0, expectedBodyLen[clientFD]);
 	headerParsed[clientFD] = false;
 	expectedBodyLen[clientFD] = 0;
@@ -145,7 +163,9 @@ void	Server::ReqRespHandle(int clientFD){
 }
 
 void	Server::clientDisconnect(int clientFd, int i){
-	std::cout << "[Client disconnected]\n";
+	std::ostringstream msg;
+	msg << "Client: " << clientFd << " disconneted" << std::endl;
+	logPrint("INFO", msg.str());
 	fds.erase(fds.begin() + i);
 	buffers.erase(clientFd);
 	headerParsed.erase(clientFd);

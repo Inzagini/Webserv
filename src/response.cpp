@@ -8,7 +8,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath == "/")
 		filePath += server.index;
-	std::cout << "[GET File path]: " << filePath <<std::endl;
+	std::cout << filePath << std::endl;
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
 		return makeResponse(server, 404, bodyStr, "");
@@ -98,6 +98,8 @@ std::string methodNotAllowedResponse(const ServerConfig &server) {
 std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir)
 {
 	std::ostringstream	response;
+	std::ostringstream	msg;
+	msg << "Server responded " << statusCode;
 
 	bodyStr = "<html><body><h1>" + bodyStr + "</h1></body></html>";
 	response << "HTTP/1.1 " << statusCode << " ";
@@ -112,6 +114,7 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 				<< "Content-Length: 0\r\n"
 				<< "Connection: close\r\n"
 				<< "\r\n";
+		logPrint("INFO", msg.str());
 		return response.str();
 	}
 
@@ -119,7 +122,8 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 		<< "Content-Type: text/html\r\n"
 		<< "\r\n"
 		<< bodyStr;
-
+	msg << std::endl;
+	logPrint("INFO", msg.str());
 	return response.str();
 }
 

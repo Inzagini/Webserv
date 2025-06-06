@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "config.hpp"
 #include "request.hpp"
+#include "utils.hpp"
 
 struct HttpRequest;
 

@@ -67,17 +67,20 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 	std::string	body;
 	std::string	bodyStr;
 	std::string	path = server.errorPages[errorCode];
+	std::ostringstream	msg;
 
 	if (path.empty()){
-		std::cout << "Using default error" << std::endl;
+		msg << "using default error" << std::endl;
 		bodyStr = "<html><body><h1>"+ errMsg + "</h1></body></html>";
+		logPrint("INFO", msg.str());
 		return bodyStr;
 	}
 	path = "." + path;
 	std::ifstream fileContent(path.c_str());
 	if (!fileContent){
-		std::cout << "File not found: " << path << std::endl;
-		std::cout << "Using default error" << std::endl;
+		msg << "File not found: " << path << " ";
+		msg << "using default error" << std::endl;
+		logPrint("WARN", msg.str());
 		bodyStr = "<html><body><h1> " + errMsg + "</h1></body></html>";
 	}
 	else{

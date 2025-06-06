@@ -34,10 +34,9 @@ std::vector<std::string> Config::tokenize(const std::string &line, char delim) {
 int	Config::load(std::string filename)
 {
 	std::ifstream file(filename.c_str());
-	if (!file) {
-		std::cerr << "Can't open the file: " << filename << std::endl;
-		return (EXIT_FAILURE);
-	}
+	if (!file)
+		throw std::runtime_error("Can't open the file: " + filename);
+
 	std::string line;
 
 	while (std::getline(file, line))
@@ -78,10 +77,8 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 		}
 		else if (tokens[0] == "listen" && tokens.size() > 1){
 			size_t colon = tokens[1].find(':');
-			if (colon == std::string::npos) {
-				std::cerr << "Missing ':' in " << tokens[1] << std::endl;
-				return EXIT_FAILURE;
-			}
+			if (colon == std::string::npos)
+				throw std::runtime_error("Missing ':' in " + tokens[1]);
 			server.listenIP = tokens[1].substr(0, colon);
 			server.listenPort = std::atoi(tokens[1].substr(colon + 1).c_str());
 		}
@@ -100,10 +97,8 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 			server.redirectCode = std::atoi(tokens[1].c_str());
 			server.redirectAddress = tokens[2];
 		}
-		else {
-			std::cerr << "Unknow key: " << tokens[0] << " | " << tokens.size()<< std::endl;
-			return EXIT_FAILURE;
-		}
+		else
+			throw std::runtime_error("Error in key: " + tokens[0]);
 	}
 	return EXIT_SUCCESS;
 }
@@ -136,10 +131,8 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 			loc.redirectCode = std::atoi(tokens[1].c_str());
 			loc.redirectAddress = tokens[2];
 		}
-		else {
-			std::cerr << "Unknow key: " << tokens[0] << " | " << tokens.size()<< std::endl;
-			return EXIT_FAILURE;
-		}
+		else
+			throw std::runtime_error("Error in key: " + tokens[0]);
 	}
 	return EXIT_SUCCESS;
 }
