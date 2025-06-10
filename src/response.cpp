@@ -8,7 +8,6 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath == "/")
 		filePath += server.index;
-	std::cout << filePath << std::endl;
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
 		return makeResponse(server, 404, bodyStr, "");
@@ -40,6 +39,8 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 
 	std::string	filePath;
 	std::string	savePath;
+	std::ostringstream	msg;
+
 	if (req.location.uploadStore.empty())
 		savePath = server.root;
 	else
@@ -49,27 +50,34 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	struct stat st;
 	if (stat(("." + savePath).c_str(), &st) != 0){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
-			std::cerr << "Failed to create directory: " << "." + savePath << std::endl;
+			msg << "Failed to create directory: " << "." + savePath << std::endl;
+			logPrint("ERROR", msg.str());
 			return makeResponse(server, 500, "Failed to create upload directory", "");
 		}
 	}
 	filePath = "." + savePath + "/" + filename;
 
-	if (filePath.empty())
+	if (filePath.empty()){
+		msg << "Failed to save file\n";
+		logPrint("WARN", msg.str());
 		return makeResponse(server, 404, "Failed to save file", "");
+	}
 
 	if (writeToFile(req, server, filePath) == true)
 		return makeResponse(server, 200, "File uploaded successfully", "");
 	else
 		return makeResponse(server, 500,  "Failed to save file", "");
+
 }
 
 /*
 	try to find the file and delete
 */
 std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
-	std::string	filePath;
-	std::string	savePath;
+	std::string			filePath;
+	std::string			savePath;
+	std::ostringstream	msg;
+
 	if (req.location.uploadStore.empty())
 		savePath = server.root;
 	else
@@ -78,20 +86,24 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
 	if (stat(filePath.c_str(), &st) != 0){
-		std::cerr << "File not found\n";
+		msg << "File not found\n";
+		logPrint("WARN", msg.str());
 		return makeResponse(server, 404, "File doesn't exist", "");
 	}
 
 	if (remove(filePath.c_str()) != 0) {
-		std::cerr << "Fail to delete file: " << filePath << std::endl;
+		msg << "Fail to delete file: " << filePath << std::endl;
+		logPrint("ERROR", msg.str());
 		return makeResponse(server, 500, "Failed to delete the file", "");
 	}
-	std::cout << "File Deleted: " + filePath << std::endl;
 	return makeResponse(server, 200, "OK", "");
 }
 
 //will and a static page later
 std::string methodNotAllowedResponse(const ServerConfig &server) {
+	std::ostringstream	msg;
+	msg << "Client requested with not allowed method\n";
+	logPrint("INFO", msg.str());
 	return makeResponse(server, 405, " Method Not Allowed", "");
 }
 
@@ -114,6 +126,7 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 				<< "Content-Length: 0\r\n"
 				<< "Connection: close\r\n"
 				<< "\r\n";
+		msg << " client redirected to " << redir <<std::endl;
 		logPrint("INFO", msg.str());
 		return response.str();
 	}
@@ -134,13 +147,16 @@ bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string
 	std::string	content = req.body.substr(contentStart + 4, contentEnd);
 
 	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
+	std::ostringstream	msg;
 	if (outFile) {
 		outFile.write(content.c_str(), content.size());
 		outFile.close();
-		std::cout << "File saved to: " << filePath << std::endl;
+		msg << "File saved to: " << filePath << std::endl;
+		logPrint("INFO", msg.str());
 		return true;
 	}
 	else
-		std::cerr << "Failed to save file: " << filePath << std::endl;
+		msg << "Failed to save file: " << filePath << std::endl;
+		logPrint("WARN", msg.str());
 		return false;
 }
