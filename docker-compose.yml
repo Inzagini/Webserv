@@ -1,0 +1,12 @@
+version: '3'
+services:
+  webserv:
+    build: .
+    ports:
+      - "8081:8081"
+    command: ./webserv /app/conf.d/default.conf
+  siege:
+    image: dockersec/siege
+    depends_on:
+      - webserv
+    entrypoint: ["sleep", "infinity"]

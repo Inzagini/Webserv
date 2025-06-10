@@ -149,7 +149,7 @@ bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string
 	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
 	std::ostringstream	msg;
 	if (outFile) {
-		outFile.write(content.c_str(), content.size());
+		outFile << content;
 		outFile.close();
 		msg << "File saved to: " << filePath << std::endl;
 		logPrint("INFO", msg.str());

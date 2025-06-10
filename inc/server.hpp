@@ -18,14 +18,14 @@ struct HttpRequest;
 class Server
 {
 	private:
-		std::vector<pollfd>	fds;
-		std::vector<int>	serverFds;
-		std::map<int, std::string> buffers;
-		std::map<int, bool> headerParsed;
-		std::map<int, size_t> expectedBodyLen;
-		std::map<int, HttpRequest> parsedRequest;
-		std::map<int, ServerConfig> serverFdToConfig;
-		std::map<int, ServerConfig> clientFdToConfig;
+		std::vector<pollfd>			fds;
+		std::vector<int>			serverFds;
+		std::map<int, std::string>	buffers;
+		std::map<int, bool>			headerParsed;
+		std::map<int, size_t>		expectedBodyLen;
+		std::map<int, HttpRequest>	parsedRequest;
+		std::map<int, ServerConfig>	serverFdToConfig;
+		std::map<int, ServerConfig>	clientFdToConfig;
 
 	public:
 		void	setServerFd(Config conf);
@@ -35,7 +35,7 @@ class Server
 		bool	isServerCheck(int fd);
 		void	clientHandle(int serverFd);
 		void	headerParser(int clientFd);
-		void	ReqRespHandle(int clientFd);
+		size_t	ReqRespHandle(int clientFd);
 		void	clientDisconnect(int clientFD, int i);
 };
 

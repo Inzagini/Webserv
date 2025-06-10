@@ -76,7 +76,8 @@ int	Server::connectionHandle(){
 						if (!headerParsed[fd])
 							this->headerParser(fd);
 						if (buffers[fd].size() >= expectedBodyLen[fd])
-							this->ReqRespHandle(fd);
+							if (this->ReqRespHandle(fd) < 1)
+								this->clientDisconnect(fd, i);
 					}
 					else {
 						this->clientDisconnect(fd, i);
@@ -146,7 +147,7 @@ void	Server::headerParser(int clientFd){
 /*
 	function is called when got the full request
 */
-void	Server::ReqRespHandle(int clientFD){
+size_t	Server::ReqRespHandle(int clientFD){
 	std::ostringstream msg;
 	msg << "Received request from client: " << clientFD << std::endl;
 	logPrint("INFO", msg.str());
@@ -154,12 +155,13 @@ void	Server::ReqRespHandle(int clientFD){
 
 	ServerConfig server = clientFdToConfig[clientFD];
 	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
-	send(clientFD, fullResponse.c_str(), fullResponse.length(), 0);
+	size_t bytes = send(clientFD, fullResponse.c_str(), fullResponse.length(), 0);
 
 	buffers[clientFD].erase(0, expectedBodyLen[clientFD]);
 	headerParsed[clientFD] = false;
 	expectedBodyLen[clientFD] = 0;
 	parsedRequest.erase(clientFD);
+	return bytes;
 }
 
 void	Server::clientDisconnect(int clientFd, int i){
