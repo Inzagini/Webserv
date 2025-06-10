@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+import sys, os
+
+print ("""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,12 +43,21 @@
 </head>
 <body>
     <h1>Run a CGI Script</h1>
-    <form action="/cgi/run_cgi.py" method="post" enctype="multipart/form-data">
+    <form action="/cgi/cgi.py" method="post" enctype="multipart/form-data">
         <input type="file" name="file" required />
         <button type="submit">Upload</button>
     </form>
     <div class="output">
-        <!-- Output from the CGI script will be displayed here -->
-    </div>
+""")
+
+content_length = int(os.environ.get('CONTENT_LENGTH', 0))
+body = sys.stdin.read(content_length)
+print("<pre>")
+print(body)
+print("</pre>")
+
+print("""
+	</div>
 </body>
 </html>
+""")
