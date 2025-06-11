@@ -58,10 +58,8 @@ int	Config::load(std::string filename)
 /*
 	parser server block current follow rigid structure
 */
-int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
-{
+int	Config::parseServerBlock(std::istream &file, ServerConfig &server){
 	std::string line;
-	server.redirect = false;
 
 	while (std::getline(file, line)) {
 		line = trim(line);
@@ -73,6 +71,7 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 		if (tokens[0] == "location" && tokens.size() > 1){
 			LocationConfig loc;
 			loc.path = tokens[1];
+			this->initLocationBlock(loc);
 			this->parseLocationBlock(file, loc);
 			server.locations.push_back(loc);
 		}
@@ -110,10 +109,8 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 /*
 	parse location blocks need checks for tokens
 */
-int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
-{
+int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc){
 	std::string line;
-	loc.redirect = false;
 
 	while (std::getline(file, line)) {
 		line = trim(line);
@@ -169,7 +166,6 @@ size_t	Config::parseBodySize(std::string &sizeStr){
 	size_t	size = 0;
 	size_t i = -1;
 
-
 	while (++i < sizeStr.size() && isdigit(sizeStr[i])){
 		int digit = sizeStr[i] - '0';
 		if (((SIZE_MAX - digit) / 10) < size) {
@@ -214,7 +210,6 @@ void	Config::initServerBlock(ServerConfig &server){
 }
 
 void	Config::initLocationBlock(LocationConfig &loc){
-	loc.path = "";
 	loc.cgiPath = "";
 	loc.uploadStore = "";
 	loc.redirect = false;
