@@ -134,7 +134,6 @@ void	Server::headerParser(int clientFd){
 		std::string headerPart = buffers[clientFd].substr(0, headerEnd + 4);
 		parsedRequest[clientFd] = parseHttpRequest(headerPart.c_str());
 		headerParsed[clientFd] = true;
-
 		std::map<std::string, std::string>::iterator it = parsedRequest[clientFd].headers.find("Content-Length");
 		if (it != parsedRequest[clientFd].headers.end())
 			expectedBodyLen[clientFd] = std::atoi(it->second.c_str());

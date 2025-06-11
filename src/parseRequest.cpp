@@ -29,7 +29,7 @@ HttpRequest parseHttpRequest(const char *rawInput)
 		}
 	}
 
-	std::map<std::string, std::string>::iterator it = req.headers.find("Content-Lenght");
+	std::map<std::string, std::string>::iterator it = req.headers.find("Content-Length");
 	if (it != req.headers.end()){
 		int		contentLenght = std::atoi(it->second.c_str());
 		char	*buffer = new char[contentLenght + 1];

@@ -46,6 +46,7 @@ int	Config::load(std::string filename)
 			continue;
 		if (line == "server {"){
 			ServerConfig server;
+			this->initServerBlock(server);
 			this->parseServerBlock(file, server);
 			this->setHttpStatusMsg(server);
 			servers.push_back(server);
@@ -97,6 +98,9 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server)
 			server.redirectCode = std::atoi(tokens[1].c_str());
 			server.redirectAddress = tokens[2];
 		}
+		else if (tokens[0] == "client_max_body_size" && tokens.size() == 2){
+			server.client_max_body_size = parseBodySize(tokens[1]);
+		}
 		else
 			throw std::runtime_error("Error in key: " + tokens[0]);
 	}
@@ -131,6 +135,9 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc)
 			loc.redirectCode = std::atoi(tokens[1].c_str());
 			loc.redirectAddress = tokens[2];
 		}
+		else if (tokens[0] == "client_max_body_size" && tokens.size() == 2){
+			loc.client_max_body_size = parseBodySize(tokens[1]);
+		}
 		else
 			throw std::runtime_error("Error in key: " + tokens[0]);
 	}
@@ -156,4 +163,63 @@ void	Config::setHttpStatusMsg(ServerConfig &server){
 	server.httpStatusMsg[501] = "Not Implemented";
 	server.httpStatusMsg[502] = "Bad Gateway";
 	server.httpStatusMsg[503] = "Service Unavailable";
+}
+
+size_t	Config::parseBodySize(std::string &sizeStr){
+	size_t	size = 0;
+	size_t i = -1;
+
+
+	while (++i < sizeStr.size() && isdigit(sizeStr[i])){
+		int digit = sizeStr[i] - '0';
+		if (((SIZE_MAX - digit) / 10) < size) {
+			throw std::runtime_error("Error: client max body size to large");
+		}
+		size = size * 10 + digit;
+	}
+
+	if (sizeStr.size() - i > 1)
+		throw std::runtime_error("Error: client max body size incorrect format");
+	else if (sizeStr.size() - i == 0){
+		if (size > DEFAULT_SIZE)
+			throw std::runtime_error("Error: client max body size is bigge than max allowed (2GB)");
+	}
+	else{
+		if (sizeStr[i] == 'K')
+			size *= 1028;
+		else if (sizeStr[i] == 'M')
+			size *= 1028 * 1028;
+		else if (sizeStr[i] == 'G')
+			size *= 1028 * 1028 * 1028;
+		else
+			throw std::runtime_error("Error: Unknow size suffix");
+	}
+
+	return size;
+}
+
+void	Config::initServerBlock(ServerConfig &server){
+	server.listenPort = -1;
+	server.listenIP = "";
+	server.serverName = "";
+	server.root = "";
+	server.index = "";
+	server.redirectAddress = "";
+	server.redirect = false;
+	server.redirectCode = -1;
+	server.client_max_body_size = -1;
+	server.errorPages = std::map<int, std::string> ();
+	server.httpStatusMsg = std::map<int, std::string> ();
+	server.locations = std::vector<LocationConfig> ();
+}
+
+void	Config::initLocationBlock(LocationConfig &loc){
+	loc.path = "";
+	loc.cgiPath = "";
+	loc.uploadStore = "";
+	loc.redirect = false;
+	loc.redirectCode = -1;
+	loc.redirectAddress = "";
+	loc.client_max_body_size = -1;
+	loc.allowMethod = std::vector<std::string> ();
 }
