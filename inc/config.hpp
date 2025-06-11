@@ -7,20 +7,22 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <cctype>
+#include <stdexcept>
 #include <iostream>
-/*
-	error to cover 400, 403, 404, 405, 413
-					500, 502, 503
-*/
+
+#define SIZE_MAX ((size_t) - 1)
+#define DEFAULT_SIZE 2ULL * 1024 * 1024 * 1024
 
 struct LocationConfig
 {
-	std::string	path;
-	std::string	cgiPath;
-	std::string	uploadStore;
-	bool		redirect;
-	int			redirectCode;
-	std::string	redirectAddress;
+	std::string					path;
+	std::string					cgiPath;
+	std::string					uploadStore;
+	bool						redirect;
+	int							redirectCode;
+	std::string					redirectAddress;
+	size_t						client_max_body_size;
 	std::vector<std::string>	allowMethod;
 };
 
@@ -34,6 +36,7 @@ struct ServerConfig
 	std::string					redirectAddress;
 	bool						redirect;
 	int							redirectCode;
+	size_t						client_max_body_size;
 	std::map<int, std::string>	errorPages;
 	std::map<int, std::string>	httpStatusMsg;
 	std::vector<LocationConfig>	locations;
@@ -54,10 +57,12 @@ class Config
 
 	private:
 		std::vector<std::string>	tokenize(const std::string& line, char delim);
+		void						initServerBlock(ServerConfig &server);
 		int							parseServerBlock(std::istream& file, ServerConfig &server);
+		void						initLocationBlock(LocationConfig &server);
 		int							parseLocationBlock(std::istream &file, LocationConfig &loc);
 		void						setHttpStatusMsg(ServerConfig &server);
-
+		size_t						parseBodySize(std::string &sizeStr);
 
 };
 
