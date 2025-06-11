@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-import sys, os
+import os
 
 print ("""
 <!DOCTYPE html>
@@ -34,6 +33,14 @@ print ("""
         button:hover {
             background-color: #2980b9;
         }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
         .output {
             margin-top: 20px;
             font-size: 1.2rem;
@@ -42,19 +49,20 @@ print ("""
     </style>
 </head>
 <body>
-    <h1>Run a CGI Script</h1>
-    <form action="/cgi/cgi.py" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required />
-        <button type="submit">Upload</button>
+    <h1>GET CGI Script</h1>
+    <form action="/cgi/helloWorld.py" method="get" enctype="multipart/form-data">
+        <a href="/">Return to Homepage</a>
     </form>
     <div class="output">
 """)
 
-content_length = int(os.environ.get('CONTENT_LENGTH', 0))
-body = sys.stdin.read(content_length)
-print("<pre>")
-print(body)
-print("</pre>")
+# Print all environment variables (for debugging)
+env_text = "\n".join(f"{key} = {value}" for key, value in os.environ.items())
+print(f"""
+<textarea readonly style="width:90%;height:300px;resize:vertical;overflow:auto;border:1px solid #ccc;margin-top:20px;">
+{env_text}
+</textarea>
+""")
 
 print("""
 	</div>

@@ -35,33 +35,30 @@ function test_endpoint() {
 echo "Starting tests on $URL"
 echo "==============================="
 
-# # Basic GET
-# test_endpoint GET "/" 200
-# test_endpoint GET "/index.html" 200
-# test_endpoint GET "/uploads.html" 200
-# test_endpoint GET "/nonexistent.html" 404
+# Basic GET
+test_endpoint GET "/" 200
+test_endpoint GET "/index.html" 200
+test_endpoint GET "/uploads.html" 200
+test_endpoint GET "/nonexistent.html" 404
 
-# # POST
-# test_endpoint POST "/cat.png" 200 "./cat.png"
-# test_endpoint POST "/upload" 200 "./cat.png"
-# test_endpoint POST "/uploads" 404 "./cat.png"
+# POST
+test_endpoint POST "/cat.png" 200 "./cat.png"
+test_endpoint POST "/upload" 200 "./cat.png"
+test_endpoint POST "/uploads" 404 "./cat.png"
 
-# # DELETE
-# test_endpoint DELETE "/cat.png" 405
-# test_endpoint DELETE "/upload/cat.png" 200
-# test_endpoint DELETE "/nonexistent.txt" 405
-# # #
-# # Redirection
-# test_endpoint GET "/redir" 301
+# DELETE
+test_endpoint DELETE "/cat.png" 405
+test_endpoint DELETE "/upload/cat.png" 200
+test_endpoint DELETE "/nonexistent.txt" 405
 
-# Forbidden
-# test_endpoint GET "/forbidden/" 403
+# Redirection
+test_endpoint GET "/redir" 301
 
 
 # CGI (make sure CGI is configured and the script exists)
-# test_endpoint GET "/cgi/helloWorld.py" 200
-test_endpoint GET "/cgi/helloWorld.py?name=test&num=42" 200
-# test_endpoint POST "/cgi/helloWorld.py" 200 "./cat.png"
+test_endpoint GET "/cgi/cgiGET.py" 200
+test_endpoint GET "/cgi/cgiGET.py?name=test&num=42" 200
+test_endpoint POST "/cgi/cgiPOST.py" 200 "./cat.png"
 
 
 # Invalid Method

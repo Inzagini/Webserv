@@ -183,3 +183,9 @@ bool	Server::isServerCheck(int fd){
 	}
 	return false;
 }
+
+Server::~Server(){
+	for (size_t i = 0; i < serverFds.size(); i++){
+		close(serverFds[i]);
+	}
+}

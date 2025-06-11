@@ -28,6 +28,7 @@ class Server
 		std::map<int, ServerConfig>	clientFdToConfig;
 
 	public:
+		~Server();
 		void	setServerFd(Config conf);
 		int		connectionHandle();
 

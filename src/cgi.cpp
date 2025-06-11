@@ -52,11 +52,13 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 		close(outFd[1]); close(outFd[0]);
 		return makeResponse(server, 500, "Failed to fork", "");
 	}
-	executor(req, inFd, outFd, pid, response);
-	return makeResponse(server, 200, response, "");
+	if (executor(req, inFd, outFd, pid, response) == -1)
+		return makeResponse(server, 500, "CGI executor fail", "");
+	else
+		return makeResponse(server, 200, response, "");
 }
 
-void	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], pid_t pid, std::string &response){
+int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], pid_t pid, std::string &response){
 	if (pid == 0){
 		if (req.method == "POST" && req.body.size() > 0)
 			dup2(inFd[0], STDIN_FILENO);
@@ -70,8 +72,8 @@ void	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], pid_t pid,
 	}
 	close(inFd[0]); close(outFd[1]);
 	if (req.method == "POST" && req.body.size() > 0){
-		std::cout << "[CGI body]\n" << req.body << std::endl;
-		write(inFd[1], req.body.c_str(), req.body.size());
+		if (write(inFd[1], req.body.c_str(), req.body.size()) != (ssize_t)req.body.size())
+			return -1;
 	}
 	close(inFd[1]);
 
@@ -80,6 +82,9 @@ void	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], pid_t pid,
 	while ((len = read(outFd[0], buffer, sizeof(buffer))) > 0)
 		response.append(buffer, len);
 	close(outFd[0]);
+	if (len == -1)
+		return -1;
+	return 1;
 }
 
 cgi::~cgi(){
