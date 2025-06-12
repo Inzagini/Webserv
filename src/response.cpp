@@ -3,10 +3,15 @@
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::string	bodyStr;
 	std::string	statusText;
-	std::string	filePath = "." + server.root + req.requestPath;
+	std::string	filePath = "." + server.root;
 
 	if (req.requestPath == "/")
-		filePath += server.index;
+		filePath = filePath + req.requestPath + server.index;
+	else if (req.requestPath == req.path)
+		filePath = filePath + "/" + req.location.index;
+	else
+		filePath += req.requestPath;
+
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
 		return makeResponse(server, 404, bodyStr, "");

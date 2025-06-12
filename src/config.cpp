@@ -123,6 +123,9 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc){
 			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
 				loc.allowMethod.push_back(*it);
 		}
+		else if(tokens[0] == "index" && tokens.size() == 2){
+			loc.index = tokens[1];
+		}
 		else if (tokens[0] == "upload_store" && tokens.size() > 1)
 			loc.uploadStore = tokens[1];
 		else if (tokens[0] == "cgi_pass" && tokens.size() > 1)

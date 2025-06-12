@@ -16,6 +16,7 @@
 
 struct LocationConfig
 {
+	std::string					index;
 	std::string					path;
 	std::string					cgiPath;
 	std::string					uploadStore;
