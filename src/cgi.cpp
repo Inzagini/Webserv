@@ -4,7 +4,7 @@
 	check for .py
 */
 bool	cgi::isCgiPath(const HttpRequest &req, const ServerConfig &server){
-	int	cgiPos = req.file.find(".py");
+	std::string::size_type	cgiPos = req.file.find(".py");
 	if (cgiPos == std::string::npos)
 		return false;
 

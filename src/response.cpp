@@ -1,7 +1,6 @@
 #include "response.hpp"
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
-	int			statusCode = -1;
 	std::string	bodyStr;
 	std::string	statusText;
 	std::string	filePath = "." + server.root + req.requestPath;
@@ -26,9 +25,16 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 */
 std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	std::string	filename;
-	std::string	contentType;
+	std::string	savePath;
+	std::ostringstream	msg;
 
-	int filenamePos = req.body.find("filename=\"");
+	if (checkContentSize(req, server)){
+		msg << "Size of content is bigger than allowed" << std::endl;
+		logPrint("WARN", msg.str());
+		return makeResponse(server, 403, "Size of content is bigger than allowed", "");
+	}
+
+	std::string::size_type filenamePos = req.body.find("filename=\"");
 	if (filenamePos != std::string::npos){
 		int filenamePosEnd = req.body.substr(filenamePos + 10).find("\"");
 		filename = req.body.substr(filenamePos + 10, filenamePosEnd);
@@ -37,16 +43,11 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (filename.empty())
 		filename = "default";
 
-	std::string	filePath;
-	std::string	savePath;
-	std::ostringstream	msg;
-
 	if (req.location.uploadStore.empty())
 		savePath = server.root;
 	else
 		savePath = req.location.uploadStore;
 
-	filePath = "." + savePath + "/" + req.file;
 	struct stat st;
 	if (stat(("." + savePath).c_str(), &st) != 0){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
@@ -55,7 +56,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 			return makeResponse(server, 500, "Failed to create upload directory", "");
 		}
 	}
-	filePath = "." + savePath + "/" + filename;
+	std::string	filePath = "." + savePath + "/" + filename;
 
 	if (filePath.empty()){
 		msg << "Failed to save file\n";
@@ -63,7 +64,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 		return makeResponse(server, 404, "Failed to save file", "");
 	}
 
-	if (writeToFile(req, server, filePath) == true)
+	if (writeToFile(req, filePath) == true)
 		return makeResponse(server, 200, "File uploaded successfully", "");
 	else
 		return makeResponse(server, 500,  "Failed to save file", "");
@@ -140,13 +141,13 @@ std::string	makeResponse(const ServerConfig &server, int statusCode, std::string
 	return response.str();
 }
 
-bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string filePath)
+bool	writeToFile(const HttpRequest &req, std::string filePath)
 {
-	int contentStart = req.body.find("\r\n\r\n");
-	int contentEnd = req.body.substr(contentStart + 4).find("----");
+	int			contentStart = req.body.find("\r\n\r\n");
+	int			contentEnd = req.body.substr(contentStart + 4).find("----");
 	std::string	content = req.body.substr(contentStart + 4, contentEnd);
 
-	std::ofstream	outFile(filePath.c_str(), std::ios::binary);
+	std::ofstream		outFile(filePath.c_str(), std::ios::binary);
 	std::ostringstream	msg;
 	if (outFile) {
 		outFile << content;
@@ -155,8 +156,25 @@ bool	writeToFile(const HttpRequest &req, const ServerConfig &server, std::string
 		logPrint("INFO", msg.str());
 		return true;
 	}
-	else
+	else{
 		msg << "Failed to save file: " << filePath << std::endl;
 		logPrint("WARN", msg.str());
 		return false;
+	}
+}
+
+int	checkContentSize(const HttpRequest &req, const ServerConfig &server){
+	if (req.location.client_max_body_size != (size_t)-1){
+		if (req.location.client_max_body_size < req.contentLength)
+			return 1;
+	}
+	else if (server.client_max_body_size != (size_t)-1){
+		if (server.client_max_body_size < req.contentLength)
+			return 1;
+	}
+	else{
+		if (DEFAULT_SIZE < req.contentLength)
+			return 1;
+	}
+	return 0;
 }

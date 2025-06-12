@@ -36,13 +36,14 @@ HttpRequest parseHttpRequest(const char *rawInput)
 		stream.read(buffer, contentLenght);
 		buffer[contentLenght] = '\0';
 		req.body = buffer;
+		req.contentLength = contentLenght;
 		delete[] buffer;
 	}
 	return req;
 }
 
 void	parsePathQuery(HttpRequest &req){
-	int queryPos = req.requestPath.find('?');
+	std::string::size_type queryPos = req.requestPath.find('?');
 	std::string pathOnly = req.requestPath;
 	std::string query = "";
 	if (queryPos != std::string::npos){
@@ -50,7 +51,7 @@ void	parsePathQuery(HttpRequest &req){
 		pathOnly = req.requestPath.substr(0, queryPos);
 	}
 
-	int lastSlashPos = pathOnly.rfind('/');
+	std::string::size_type lastSlashPos = pathOnly.rfind('/');
 	if (lastSlashPos != std::string::npos){
 		if (pathOnly.find('.') != std::string::npos){
 			req.path = pathOnly.substr(0, lastSlashPos + 1);
@@ -72,7 +73,7 @@ std::map<std::string, std::string>	parseQuery(const std::string &s){
 
 	for(size_t i = 0; i < pairs.size(); i++){
 		std::string key, value;
-		int	equalPos = pairs[i].find('=');
+		std::string::size_type	equalPos = pairs[i].find('=');
 		if (equalPos != std::string::npos){
 			key = pairs[i].substr(0, equalPos);
 			value = pairs[i].substr(equalPos + 1);

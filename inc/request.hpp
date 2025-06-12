@@ -15,6 +15,7 @@ struct HttpRequest {
 	std::string	path;
 	std::string	file;
 	std::string	version;
+	size_t		contentLength;
 	LocationConfig	location;
 	std::map<std::string, std::string>	headers;
 	std::map<std::string, std::string> queryParams;

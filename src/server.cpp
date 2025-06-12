@@ -92,7 +92,7 @@ int	Server::connectionHandle(){
 
 void	Server::setServerFd(Config conf)
 {
-	for (int i = 0; i < conf.getServer().size(); i++){
+	for (size_t i = 0; i < conf.getServer().size(); i++){
 		int serverFD = setSocket(conf.getServer()[i]);
 		if (serverFD < 0)
 			continue;

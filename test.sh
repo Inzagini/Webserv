@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SERVER="127.0.1.1"
-PORT=8081
+SERVER="127.0.0.1"
+PORT=8080
 URL="http://$SERVER:$PORT"
 
 GREEN='\033[0;32m'

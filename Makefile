@@ -1,6 +1,6 @@
-CC:= c++
+CXX:= c++
 NAME:= webserv
-CFLAGS:= -std=c++98  -g
+CXXFLAGS:= -std=c++98 -g -Wall -Werror -Wextra
 INCLUDES:= inc
 SRC_DIR:= src
 SRCS:= main.cpp cgi.cpp config.cpp parseRequest.cpp request.cpp response.cpp server.cpp utils.cpp
@@ -10,10 +10,10 @@ FILEPATH = ./conf.d/default.conf
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -I. -I$(INCLUDES) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(OBJS) -I. -I$(INCLUDES) -o $(NAME)
 
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CC) $(CFLAGS) -I$(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(INCLUDES) -c $< -o $@
 
 clean:
 	@rm -f $(OBJS) && echo "Cleaned *.o files"

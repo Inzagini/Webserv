@@ -10,6 +10,7 @@ struct HttpRequest;
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server);
 std::string	methodNotAllowedResponse(const ServerConfig &server);
-bool		writeToFile(const HttpRequest &req, const ServerConfig &server, std::string filePath);
+bool		writeToFile(const HttpRequest &req, std::string filePath);
 std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir);
+int	checkContentSize(const HttpRequest &req, const ServerConfig &server);
 #endif
