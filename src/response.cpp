@@ -7,7 +7,7 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath == "/")
 		filePath = filePath + req.requestPath + server.index;
-	else if (req.requestPath == req.path)
+	else if (req.requestPath == req.path && req.location.index != "")
 		filePath = filePath + "/" + req.location.index;
 	else
 		filePath += req.requestPath;
