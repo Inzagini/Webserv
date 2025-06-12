@@ -213,6 +213,7 @@ void	Config::initServerBlock(ServerConfig &server){
 }
 
 void	Config::initLocationBlock(LocationConfig &loc){
+	loc.index = "";
 	loc.cgiPath = "";
 	loc.uploadStore = "";
 	loc.redirect = false;
