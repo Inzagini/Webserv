@@ -25,6 +25,17 @@
 	a:hover {
 		text-decoration: underline;
 	}
+	button {
+		padding: 10px 15px;
+		font-size: 1rem;
+		background-color: #3498db;
+		color: white;
+		border: none;
+		cursor: pointer;
+	}
+	button:hover {
+		background-color: #2980b9;
+	}
 	</style>
 </head>
 <body>
@@ -33,7 +44,10 @@
     <input type="file" name="file" required />
     <button type="submit">Upload</button>
     <br /><br />
-	<a href="/">Return to Homepage</a>
+    <button onclick="window.location.href='/upload/delete.html'">View & Delete Uploaded Files</button>
+    <br /><br />
+    <a href="/">Return to Homepage</a>
   </form>
+
 </body>
 </html>

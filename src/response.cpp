@@ -12,6 +12,10 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	else
 		filePath += req.requestPath;
 
+	if (req.requestPath.size() > 12 &&
+		req.requestPath.substr(req.requestPath.size() - 12) == "/delete.html")
+		return makeResponse(server, 200, generateUploadsListPage(server, req.location), "");
+
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
 		return makeResponse(server, 404, bodyStr, "");
