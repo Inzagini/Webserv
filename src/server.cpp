@@ -146,13 +146,23 @@ int Server::connectionHandle() {
 }
 
 
-void Server::prepareResponse(int clientFD) {
+void	Server::prepareResponse(int clientFD) {
 	std::ostringstream oss;
 	oss << "Preparing response for client: " << clientFD << std::endl;
 	logPrint("INFO", oss.str());
 
 	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
 	ServerConfig server = clientFdToConfig[clientFD];
+	std::string hostname = parsedRequest[clientFD].headers["Host"];
+	size_t colon = hostname.find(':');
+	if (colon != std::string::npos)
+		hostname = trim(hostname.substr(0, colon));
+
+	if (server.serverName != "" && server.serverName != hostname){
+		responseQueue[clientFD] = makeResponse(server, 400, "Bad request", "");
+		return;
+	}
+
 	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
 	responseQueue[clientFD] = fullResponse;
 }
