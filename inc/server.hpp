@@ -26,6 +26,7 @@ class Server
 		std::map<int, HttpRequest>	parsedRequest;
 		std::map<int, ServerConfig>	serverFdToConfig;
 		std::map<int, ServerConfig>	clientFdToConfig;
+		std::map<int, std::string> responseQueue;
 
 	public:
 		~Server();
@@ -38,6 +39,7 @@ class Server
 		void	headerParser(int clientFd);
 		size_t	ReqRespHandle(int clientFd);
 		void	clientDisconnect(int clientFD, int i);
+		void	prepareResponse(int clientFD);
 };
 
 int	setSocket(ServerConfig &server);
