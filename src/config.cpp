@@ -159,6 +159,7 @@ void	Config::setHttpStatusMsg(ServerConfig &server){
 	server.httpStatusMsg[403] = "Forbidden";
 	server.httpStatusMsg[404] = "Not Found";
 	server.httpStatusMsg[405] = "Method Not Allowed";
+	server.httpStatusMsg[413] = "Payload Too Large";
 	server.httpStatusMsg[500] = "Internal Server Error";
 	server.httpStatusMsg[501] = "Not Implemented";
 	server.httpStatusMsg[502] = "Bad Gateway";

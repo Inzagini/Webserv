@@ -148,7 +148,7 @@ int Server::connectionHandle() {
 
 void Server::prepareResponse(int clientFD) {
 	std::ostringstream oss;
-	oss << "Preparing response for client: " << clientFD;
+	oss << "Preparing response for client: " << clientFD << std::endl;
 	logPrint("INFO", oss.str());
 
 	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
