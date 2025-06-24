@@ -93,7 +93,7 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	else
 		savePath = req.location.uploadStore;
 
-	filePath = "." + savePath + "/" + req.file;
+	filePath = "." + savePath + "/" + urlDecode(req.file);
 	struct stat st;
 	if (stat(filePath.c_str(), &st) != 0){
 		msg << "File not found\n";
@@ -186,4 +186,22 @@ int	checkContentSize(const HttpRequest &req, const ServerConfig &server){
 			return 1;
 	}
 	return 0;
+}
+
+std::string	urlDecode(std::string fileName){
+	std::ostringstream out;
+	for (size_t i = 0; i < fileName.length(); i++){
+		if (fileName[i] == '%' && i + 2 < fileName.length()){
+			std::istringstream iss (fileName.substr(i + 1, 2));
+			int hex = 0;
+			if (iss >> std::hex >> hex)
+				out << static_cast<char>(hex);
+			i += 2;
+		}
+		else if (fileName[i] == '+')
+			out << ' ';
+		else
+			out << fileName[i];
+	}
+	return out.str();
 }
