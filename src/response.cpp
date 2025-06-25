@@ -2,7 +2,6 @@
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::string	bodyStr;
-	std::string	statusText;
 	std::string	filePath = "." + server.root;
 
 	if (req.requestPath == "/")
