@@ -57,38 +57,6 @@ int	setSocket(ServerConfig &server)
 	call the request parsing
 	depend on result of request parse then server the correct webpage
 */
-// int	Server::connectionHandle(){
-// 	while (true) {
-// 		int	pollCount = poll(fds.data(), fds.size(), -1);
-// 		if (pollCount < 0)
-// 			continue;
-
-// 		for (std::vector<struct pollfd>::size_type i = 0; i < fds.size(); ++i) {
-// 			if (fds[i].revents & POLLIN) {
-// 				int	fd = fds[i].fd;
-// 				if (this->isServerCheck(fd))
-// 					this->clientHandle(fd);
-// 				else {
-// 					char	buffer[4096];
-// 					ssize_t	bytesRead = recv(fd, buffer, sizeof(buffer), 0);
-// 					if (bytesRead > 0) {
-// 						buffers[fd].append(buffer, bytesRead);
-// 						if (!headerParsed[fd])
-// 							this->headerParser(fd);
-// 						if (buffers[fd].size() >= expectedBodyLen[fd])
-// 							if (this->ReqRespHandle(fd) < 1)
-// 								this->clientDisconnect(fd, i);
-// 					}
-// 					else {
-// 						this->clientDisconnect(fd, i);
-// 						--i;
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return EXIT_SUCCESS;
-// }
 
 int Server::connectionHandle() {
 	while (true) {
@@ -225,23 +193,6 @@ void	Server::headerParser(int clientFd){
 /*
 	function is called when got the full request
 */
-size_t	Server::ReqRespHandle(int clientFD){
-	std::ostringstream msg;
-	msg << "Received request from client: " << clientFD << std::endl;
-	logPrint("INFO", msg.str());
-	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
-
-	ServerConfig server = clientFdToConfig[clientFD];
-	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
-	size_t bytes = send(clientFD, fullResponse.c_str(), fullResponse.length(), 0);
-
-	buffers[clientFD].erase(0, expectedBodyLen[clientFD]);
-	headerParsed[clientFD] = false;
-	expectedBodyLen[clientFD] = 0;
-	parsedRequest.erase(clientFD);
-	return bytes;
-}
-
 void	Server::clientDisconnect(int clientFd, int i){
 	std::ostringstream msg;
 	msg << "Client: " << clientFd << " disconneted" << std::endl;

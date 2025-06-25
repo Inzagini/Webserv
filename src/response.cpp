@@ -2,7 +2,6 @@
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 	std::string	bodyStr;
-	std::string	statusText;
 	std::string	filePath = "." + server.root;
 
 	if (req.requestPath == "/")
@@ -117,76 +116,43 @@ std::string methodNotAllowedResponse(const ServerConfig &server) {
 	return makeResponse(server, 405, " Method Not Allowed", "");
 }
 
-// std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir)
-// {
-// 	std::ostringstream	response;
-// 	std::ostringstream	msg;
-// 	msg << "Server responded " << statusCode;
-
-// 	bodyStr = "<html><body><h1>" + bodyStr + "</h1></body></html>";
-// 	response << "HTTP/1.1 " << statusCode << " ";
-// 	response << server.httpStatusMsg.find(statusCode)->second <<"\r\n";
-// 	if (statusCode >= 400){
-// 		std::string body = ErrorContent(server, statusCode, bodyStr);
-// 		if (!body.empty())
-// 			bodyStr = body;
-// 	}
-// 	else if (statusCode >= 300 && statusCode < 400){
-// 		response << "Location: " << redir << "\r\n"
-// 				<< "Content-Length: 0\r\n"
-// 				<< "Connection: close\r\n"
-// 				<< "\r\n";
-// 		msg << " client redirected to " << redir <<std::endl;
-// 		logPrint("INFO", msg.str());
-// 		return response.str();
-// 	}
-
-// 	response << "Content-Length: " << bodyStr.size() << "\r\n"
-// 		<< "Content-Type: text/html\r\n"
-// 		<< "\r\n"
-// 		<< bodyStr;
-// 	msg << std::endl;
-// 	logPrint("INFO", msg.str());
-// 	return response.str();
-// }
-
 std::string makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string contentTypeOrRedirect) {
-    std::ostringstream response;
-    std::ostringstream msg;
+ 	std::ostringstream response;
+	std::ostringstream msg;
 
-    response << "HTTP/1.1 " << statusCode << " ";
-    response << server.httpStatusMsg.find(statusCode)->second << "\r\n";
+ 	response << "HTTP/1.1 " << statusCode << " ";
+ 	response << server.httpStatusMsg.find(statusCode)->second << "\r\n";
 
-    msg << "Server responded " << statusCode;
+ 	msg << "Server responded " << statusCode;
 
-    if (statusCode >= 300 && statusCode < 400) {
-        response << "Location: " << contentTypeOrRedirect << "\r\n"
-                 << "Content-Length: 0\r\n"
-                 << "Connection: close\r\n"
-                 << "\r\n";
-        msg << " client redirected to " << contentTypeOrRedirect << std::endl;
-        logPrint("INFO", msg.str());
-        return response.str();
-    }
+ 	if (statusCode >= 300 && statusCode < 400) {
+ 	 	response << "Location: " << contentTypeOrRedirect << "\r\n"
+ 	 	 	 	 << "Content-Length: 0\r\n"
+ 	 	 	 	 << "Connection: close\r\n"
+ 	 	 	 	 << "\r\n";
+ 	 	msg << " client redirected to " << contentTypeOrRedirect << std::endl;
+ 	 	logPrint("INFO", msg.str());
+ 	 	return response.str();
+ 	}
 
-    if (statusCode >= 400) {
-        std::string errorBody = ErrorContent(server, statusCode, bodyStr);
-        if (!errorBody.empty())
-            bodyStr = errorBody;
-        contentTypeOrRedirect = "text/html"; // now allowed to assign
-    }
+ 	if (statusCode >= 400) {
+ 	 	std::string errorBody = ErrorContent(server, statusCode, bodyStr);
+ 	 	if (!errorBody.empty())
+ 	 	 	bodyStr = errorBody;
+ 	 	contentTypeOrRedirect = "text/html"; // now allowed to assign
+ 	}
 
-    response << "Content-Length: " << bodyStr.size() << "\r\n";
-    response << "Content-Type: " << contentTypeOrRedirect << "\r\n";
-    response << "Connection: close\r\n";
-    response << "\r\n";
+ 	response << "Content-Length: " << bodyStr.size() << "\r\n";
+ 	response << "Content-Type: " << contentTypeOrRedirect << "\r\n";
+ 	response << "Connection: close\r\n";
+ 	response << "\r\n";
 
-    response << bodyStr;
+ 	response << bodyStr;
 
-    msg << std::endl;
-    logPrint("INFO", msg.str());
+ 	msg << std::endl;
+ 	logPrint("INFO", msg.str());
 
-    return response.str();
+ 	return response.str();
 }
 
 bool	writeToFile(const HttpRequest &req, std::string filePath)
