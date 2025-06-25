@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVER="127.0.0.1"
+SERVER="localhost"
 PORT=8080
 URL="http://$SERVER:$PORT"
 
