@@ -102,6 +102,14 @@ int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string
 		return -1;
 	}
 
+	if (WIFEXITED(status)) {
+		if (WEXITSTATUS(status) != 0)
+			return -1;
+	}
+	else if (WIFSIGNALED(status)){
+		return -1;
+	}
+
 	return 1;
 }
 
