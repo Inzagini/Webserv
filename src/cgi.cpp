@@ -1,14 +1,5 @@
 #include "cgi.hpp"
 
-volatile sig_atomic_t alarm_sig = 0;
-
-void	alarm_handler(int sig)
-{
-	(void) sig;
-	alarm_sig = 1;
-}
-
-
 /*
 	check for .py
 */
@@ -86,15 +77,42 @@ int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string
 	}
 	close(inFd[1]);
 
+	time_t		startTime = time(NULL);
+
+	if (this->readFromPipe(pid, startTime, outFd, response) == -1)
+		return (close(outFd[0]), -1);
+
+	close(outFd[0]);
+
+	pid_t	result;
+	int		status;
+	while (time(NULL) - startTime < CGI_TIMEOUT) {
+		result = waitpid(pid, &status, WNOHANG);
+		if (result > 0)
+			break;
+		else if (result == -1)
+			return -1;
+		usleep(100000); // 100ms
+	}
+
+	// If process still hasn't exited, kill it
+	if (result == 0) {
+		kill(pid, SIGKILL);
+		waitpid(pid, NULL, 0);
+		return -1;
+	}
+
+	return 1;
+}
+
+int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &response){
 	char		buffer[4096];
 	ssize_t		len;
 	fd_set		readfds;
 	struct		timeval timeout;
-	time_t		start_time = time(NULL);
-	const int CGI_TIMEOUT = 5;
 
 	while (true){
-		if (time(NULL) - start_time >= CGI_TIMEOUT) {
+		if (time(NULL) - startTime >= CGI_TIMEOUT) {
 			close(outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
@@ -128,28 +146,6 @@ int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string
 			}
 		}
 	}
-	close(outFd[0]);
-
-	pid_t result;
-	int status;
-	while (time(NULL) - start_time < CGI_TIMEOUT) {
-		result = waitpid(pid, &status, WNOHANG);
-		if (result > 0) {
-			break;
-		}
-		else if (result == -1) {
-			return -1;
-		}
-		usleep(100000); // 100ms
-	}
-
-	// If process still hasn't exited, kill it
-	if (result == 0) {
-		kill(pid, SIGKILL);
-		waitpid(pid, NULL, 0);
-		return -1;
-	}
-
 	return 1;
 }
 
