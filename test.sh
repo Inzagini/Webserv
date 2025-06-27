@@ -60,6 +60,9 @@ test_endpoint GET "/cgi/cgiGET.py" 200
 test_endpoint GET "/cgi/cgiGET.py?name=test&num=42" 200
 test_endpoint POST "/cgi/cgiPOST.py" 200 "./cat.png"
 
+test_endpoint GET "/cgi/infillop.py" 500
+test_endpoint GET "/cgi/syntaxerr.py" 500
+
 
 # Invalid Method
 test_endpoint PUT "/" 405

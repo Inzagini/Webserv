@@ -127,6 +127,7 @@ void	Server::prepareResponse(int clientFD) {
 		hostname = trim(hostname.substr(0, colon));
 
 	if (server.serverName != "" && server.serverName != hostname){
+		std::cout << "Host: " << hostname << " | Server: " << server.serverName << std::endl;
 		responseQueue[clientFD] = makeResponse(server, 400, "Bad request", "");
 		return;
 	}
@@ -137,19 +138,32 @@ void	Server::prepareResponse(int clientFD) {
 
 
 
-void	Server::setServerFd(Config conf)
-{
+void	Server::setServerFd(Config conf){
+	std::vector<std::string> ipPortlst;
+
 	for (size_t i = 0; i < conf.getServer().size(); i++){
-		int serverFD = setSocket(conf.getServer()[i]);
+		int serverFD;
+		std::ostringstream oss;
+		oss << conf.getServer()[i].listenIP << ":" << conf.getServer()[i].listenPort;
+
+		std::vector<std::string>::iterator it = std::find(ipPortlst.begin(), ipPortlst.end(), oss.str());
+		if (it == ipPortlst.end()) {
+			serverFD = setSocket(conf.getServer()[i]);
+			ipPortlst.push_back(oss.str());
+		}
+
 		if (serverFD < 0)
 			continue;
+
 		serverFds.push_back(serverFD);
-		serverFdToConfig[serverFD] = conf.getServer()[i];
+
 		struct pollfd pfd;
 		pfd.fd = serverFD;
 		pfd.events = POLLIN;
 		pfd.revents = 0;
 		fds.push_back(pfd);
+
+		serverFdToConfig[serverFD] = conf.getServer()[i];
 	}
 }
 
