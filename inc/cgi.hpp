@@ -3,9 +3,14 @@
 
 #include <string>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include <signal.h>
+#include <ctime>
+#include <unistd.h>
+#include <sys/select.h>
 
 #include "request.hpp"
 #include "server.hpp"
@@ -25,6 +30,6 @@ class	cgi{
 	public:
 		std::string	handleCGI(const HttpRequest &req, const ServerConfig &server);
 		bool	isCgiPath(const HttpRequest &req, const ServerConfig &server);
-		int		executor(const HttpRequest &req, int inFd[2], int outFd[2],pid_t pid, std::string &response);
+		int		executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string &response);
 };
 #endif
