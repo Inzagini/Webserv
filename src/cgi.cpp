@@ -107,27 +107,21 @@ int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string
 
 		int select_result = select(outFd[0] + 1, &readfds, NULL, NULL, &timeout);
 		if (select_result == -1) {
-			// select error
 			close(outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
 			return -1;
 		}
-		else if (select_result == 0) {
-			// timeout occurred, continue loop to check total timeout
+		else if (select_result == 0) // timeout occurred, continue loop to check total timeout
 			continue;
-		}
 		else {
 			len = read(outFd[0], buffer, sizeof(buffer)); // Data is available to read
-			if (len > 0) {
+			if (len > 0)
 				response.append(buffer, len);
-			}
-			else if (len == 0) {
+			else if (len == 0)
 				break; // EOF reached
-			}
 			else {
-				// read error
-				close(outFd[0]);
+				close(outFd[0]); // read error
 				kill(pid, SIGKILL);
 				waitpid(pid, NULL, 0);
 				return -1;
