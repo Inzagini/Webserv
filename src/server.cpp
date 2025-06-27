@@ -121,16 +121,18 @@ void	Server::prepareResponse(int clientFD) {
 
 	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
 
-	ServerConfig server = clientFdToConfig[clientFD];
+	ServerConfig server = clientFdToConfig[clientFD][0];
 	std::string hostname = parsedRequest[clientFD].headers["Host"];
 	size_t colon = hostname.find(':');
 	if (colon != std::string::npos)
 		hostname = trim(hostname.substr(0, colon));
 
-	if (server.serverName != "" && server.serverName != hostname){
-		std::cout << "Host: " << hostname << " | Server: " << server.serverName << std::endl;
-		responseQueue[clientFD] = makeResponse(server, 400, "Bad request", "");
-		return;
+	for (std::vector<ServerConfig>::iterator it = clientFdToConfig[clientFD].begin();
+		 it != clientFdToConfig[clientFD].end(); it++){
+		if (it->serverName == hostname){
+			server = *it;
+			break;
+		}
 	}
 
 	std::string fullResponse = handleRequest(parsedRequest[clientFD], server);
@@ -175,7 +177,7 @@ void	Server::clientHandle(int serverFd){
 		newPfd.events = POLLIN;
 		newPfd.revents = 0;
 		fds.push_back(newPfd);
-		clientFdToConfig[clientFD] = serverFdToConfig[serverFd][0];
+		clientFdToConfig[clientFD] = serverFdToConfig[serverFd];
 		std::ostringstream msg;
 		msg << "Client: " << clientFD << " connected to server "
 			<< serverFdToConfig[serverFd][0].listenIP << ":"
