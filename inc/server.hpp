@@ -24,7 +24,7 @@ class Server
 		std::map<int, bool>			headerParsed;
 		std::map<int, size_t>		expectedBodyLen;
 		std::map<int, HttpRequest>	parsedRequest;
-		std::map<int, ServerConfig>	serverFdToConfig;
+		std::map<int, std::vector<ServerConfig> >	serverFdToConfig;
 		std::map<int, ServerConfig>	clientFdToConfig;
 		std::map<int, std::string> responseQueue;
 

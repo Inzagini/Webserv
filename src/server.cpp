@@ -120,6 +120,7 @@ void	Server::prepareResponse(int clientFD) {
 	logPrint("INFO", oss.str());
 
 	parsedRequest[clientFD].body = buffers[clientFD].substr(0, expectedBodyLen[clientFD]);
+
 	ServerConfig server = clientFdToConfig[clientFD];
 	std::string hostname = parsedRequest[clientFD].headers["Host"];
 	size_t colon = hostname.find(':');
@@ -139,31 +140,30 @@ void	Server::prepareResponse(int clientFD) {
 
 
 void	Server::setServerFd(Config conf){
-	std::vector<std::string> ipPortlst;
+	std::map<std::string, int> ipPortMap;
 
 	for (size_t i = 0; i < conf.getServer().size(); i++){
 		int serverFD;
 		std::ostringstream oss;
 		oss << conf.getServer()[i].listenIP << ":" << conf.getServer()[i].listenPort;
 
-		std::vector<std::string>::iterator it = std::find(ipPortlst.begin(), ipPortlst.end(), oss.str());
-		if (it == ipPortlst.end()) {
+		std::map<std::string, int>::iterator it = ipPortMap.find(oss.str());
+		if (it != ipPortMap.end())
+			serverFD = it->second;
+		else{
 			serverFD = setSocket(conf.getServer()[i]);
-			ipPortlst.push_back(oss.str());
+			ipPortMap[oss.str()] = serverFD;
+
+			if (serverFD < 0)
+				continue;
+			serverFds.push_back(serverFD);
+			struct pollfd pfd;
+			pfd.fd = serverFD;
+			pfd.events = POLLIN;
+			pfd.revents = 0;
+			fds.push_back(pfd);
 		}
-
-		if (serverFD < 0)
-			continue;
-
-		serverFds.push_back(serverFD);
-
-		struct pollfd pfd;
-		pfd.fd = serverFD;
-		pfd.events = POLLIN;
-		pfd.revents = 0;
-		fds.push_back(pfd);
-
-		serverFdToConfig[serverFD] = conf.getServer()[i];
+		serverFdToConfig[serverFD].push_back(conf.getServer()[i]);
 	}
 }
 
@@ -175,11 +175,11 @@ void	Server::clientHandle(int serverFd){
 		newPfd.events = POLLIN;
 		newPfd.revents = 0;
 		fds.push_back(newPfd);
-		clientFdToConfig[clientFD] = serverFdToConfig[serverFd];
+		clientFdToConfig[clientFD] = serverFdToConfig[serverFd][0];
 		std::ostringstream msg;
 		msg << "Client: " << clientFD << " connected to server "
-			<< serverFdToConfig[serverFd].listenIP << ":"
-			<< serverFdToConfig[serverFd].listenPort << std::endl;
+			<< serverFdToConfig[serverFd][0].listenIP << ":"
+			<< serverFdToConfig[serverFd][0].listenPort << std::endl;
 		logPrint("INFO", msg.str());
 	}
 }
