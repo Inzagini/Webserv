@@ -60,7 +60,7 @@ int	setSocket(ServerConfig &server)
 
 int Server::connectionHandle() {
 	while (true) {
-		int pollCount = poll(fds.data(), fds.size(), -1);
+		int pollCount = poll(fds.data(), fds.size(), 1000);
 		if (pollCount < 0)
 			continue;
 
