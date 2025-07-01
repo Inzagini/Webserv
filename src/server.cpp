@@ -13,20 +13,20 @@ int	setSocket(ServerConfig &server)
 	int serverFD = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverFD < 0) {
 		msg << "Error: socket creation failed - " << strerror(errno) << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return -1;
 	}
 
 	int opt = 1;
 	if (setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
 		msg << "Error: setsockopt failed - " << strerror(errno) << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return (close(serverFD), -1);
 	}
 
 	if (fcntl(serverFD, F_SETFL, O_NONBLOCK) < 0){
 		msg << "Error: setting non-blocking failed - " << strerror(errno) << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return (close (serverFD), -1);
 	}
 
@@ -37,13 +37,13 @@ int	setSocket(ServerConfig &server)
 
 	if (bind(serverFD, (sockaddr*)&addr, sizeof(addr)) < 0){
 		msg << "Error: bind - " << strerror(errno) << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return (close (serverFD), -1);
 	}
 
 	if	(listen(serverFD, 10) < 0){
 		msg << "Error: listen - " << strerror(errno) << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return (close (serverFD), -1);
 	}
 

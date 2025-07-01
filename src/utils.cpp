@@ -3,7 +3,7 @@
 void	logPrint(std::string type, std::string msg){
 	std::time_t now = std::time(NULL);
 	std::tm* localTime = std::localtime(&now);
-	std::cout << "["
+	std::cout << CGREY << "["
 			<< (1900 + localTime->tm_year) << "-"
 			<< std::setw(2) << std::setfill('0') << (1 + localTime->tm_mon) << "-"
 			<< std::setw(2) << std::setfill('0') << localTime->tm_mday
@@ -11,14 +11,14 @@ void	logPrint(std::string type, std::string msg){
 			<< std::setw(2) << std::setfill('0') << localTime->tm_hour << "-"
 			<< std::setw(2) << std::setfill('0') << localTime->tm_min << "-"
 			<< std::setw(2) << std::setfill('0') << localTime->tm_sec
-			<< "] ";
+			<< "] " << CRESET;
 
 	std::string color;
 	if (type == "INFO") color = CCYAN;
 	else if (type == "WARN") color = CYELLOW;
-	else if (type == "ERROR") color = CRED;
+	else if (type == "ERRO") color = CRED;
 	else color = CRESET;
-	std::cout << color << "[" << type << "]\t" << CRESET;
+	std::cout << color << "[" << type << "] " << CRESET << "> ";
 
 	std::cout << msg;
 }

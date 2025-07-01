@@ -15,6 +15,7 @@
 # define CBLUE		"\033[1;34m"
 # define CMAGENTA	"\033[1;35m"
 # define CCYAN		"\033[1;36m"
+# define CGREY		"\033[90m"
 
 
 void	logPrint(std::string type, std::string msg);

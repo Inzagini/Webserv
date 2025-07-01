@@ -163,14 +163,14 @@ std::string	cgi::createCGIResponse(const HttpRequest &req, const ServerConfig &s
 		headerEnd = response.find("\r\n\r\n");
 		seperatorLen = 4;
 		if (headerEnd == std::string::npos){
-			logPrint("ERROR", "CGI script did not provide proper headers\n");
+			logPrint("ERRO", "CGI script did not provide proper headers\n");
 			return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
 		}
 	}
 
 	std::string headers = response.substr(0, headerEnd);
 	if (headers.find("Content-Type:") == std::string::npos){
-		logPrint("ERROR", "CGI script missing required headers\n");
+		logPrint("ERRO", "CGI script missing required headers\n");
 		return makeResponse(req, server, 500, "CGI script missing required headers", "");
 	}
 

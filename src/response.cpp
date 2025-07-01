@@ -60,7 +60,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (stat(("." + savePath).c_str(), &st) != 0){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
 			msg << "Failed to create directory: " << "." + savePath << std::endl;
-			logPrint("ERROR", msg.str());
+			logPrint("ERRO", msg.str());
 			return makeResponse(req, server, 500, "Failed to create upload directory", "text/html");
 		}
 	}
@@ -102,7 +102,7 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 
 	if (remove(filePath.c_str()) != 0) {
 		msg << "Fail to delete file: " << filePath << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 		return makeResponse(req, server, 500, "Failed to delete the file", "");
 	}
 	return makeResponse(req, server, 200, "OK", "");
@@ -135,7 +135,7 @@ std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int
 	}
 	else {
 		msg << bodyStr << std::endl;
-		logPrint("ERROR", msg.str());
+		logPrint("ERRO", msg.str());
 	}
 
 	response << "HTTP/1.1 " << statusCode << " ";
