@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import sys, os
 
+print ("Content-Type: text/html")
+print()
+
 print ("""
 <!DOCTYPE html>
 <html lang="en">

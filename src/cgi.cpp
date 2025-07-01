@@ -37,19 +37,55 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	struct stat	st;
 
 	if (stat(this->fullPath.c_str(), &st) != 0)
-		return makeResponse(server, 404, "Not found", "");
+		return makeResponse(req, server, 404, "Not found", "");
 
 	if (pipe(inFd) < 0)
-		return makeResponse(server, 500, "Failed to create Pipe", "");
+		return makeResponse(req, server, 500, "Failed to create Pipe", "");
 	if (pipe(outFd) < 0){
 		close(inFd[1]); close(inFd[0]);
-		return makeResponse(server, 500, "Failed to create Pipe", "");
+		return makeResponse(req, server, 500, "Failed to create Pipe", "");
 	}
 
 	if (executor(req, inFd, outFd, response) == -1)
-		return makeResponse(server, 500, "CGI executor fail", "");
-	else
-		return makeResponse(server, 200, response, "");
+		return makeResponse(req, server, 500, "CGI executor fail", "");
+	else {
+		std::ostringstream oss;
+		size_t	headerEnd = response.find("\r\n\r\n");
+		if (headerEnd == std::string::npos){
+			headerEnd = response.find("\n\n");
+			if (headerEnd == std::string::npos)
+				return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
+		}
+
+		std::string headers = response.substr(0, headerEnd);
+		if (headers.find("Content-Type:") == std::string::npos)
+			return makeResponse(req, server, 500, "CGI script missing required headers", "");
+
+		std::string statusLine = "200 OK";
+		std::string body = response.substr(headerEnd + 3);
+		size_t	statusPos = response.find("Status:");
+		if (statusPos != std::string::npos){
+			size_t statusStart = statusPos + 7;
+			size_t statusEnd = response.find("\n", statusStart);
+			if (statusEnd == std::string::npos)
+				statusEnd = response.find("\r\n", statusStart);
+
+			std::cout << headers << std::endl;
+			statusLine = response.substr(statusStart, statusEnd - statusStart);
+
+			if (headers[statusEnd] == '\n')
+				headers.erase(statusPos, statusEnd + 1);
+			else if (headers.substr(statusEnd, 2) == "\r\n")
+				headers.erase(statusPos, statusEnd + 2);
+		}
+		oss << "HTTP/1.1 " + statusLine + "\n";
+		oss << "Connection: keep-alive\r\n";
+		oss << "Content-Length: " << body.size() << "\r\n";
+		oss << headers + "\r\n";
+		oss << "\r\n";
+		oss << body;
+		return oss.str();
+	}
 }
 
 int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string &response){

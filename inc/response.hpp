@@ -9,9 +9,9 @@
 struct HttpRequest;
 
 std::string	handleGet(const HttpRequest &req, const ServerConfig &server);
-std::string	methodNotAllowedResponse(const ServerConfig &server);
+std::string	methodNotAllowedResponse(const HttpRequest &req, const ServerConfig &server);
 bool		writeToFile(const HttpRequest &req, std::string filePath);
-std::string	makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir);
+std::string	makeResponse(const HttpRequest &req, const ServerConfig &server, int statusCode, std::string bodyStr, std::string redir);
 int	checkContentSize(const HttpRequest &req, const ServerConfig &server);
 std::string	urlDecode(std::string fileName);
 #endif

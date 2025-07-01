@@ -37,7 +37,6 @@ class Server
 		bool	isServerCheck(int fd);
 		void	clientHandle(int serverFd);
 		void	headerParser(int clientFd);
-		size_t	ReqRespHandle(int clientFd);
 		void	clientDisconnect(int clientFD, int i);
 		void	prepareResponse(int clientFD);
 };

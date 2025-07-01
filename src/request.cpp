@@ -22,16 +22,16 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 
 	if (server.redirect == true || req.location.redirect == true){
 		if (server.redirect == true)
-			return makeResponse(server, server.redirectCode, "Redirect", server.redirectAddress);
+			return makeResponse(req, server, server.redirectCode, "Redirect", server.redirectAddress);
 		else if (req.location.redirect == true){
-			return makeResponse(server, req.location.redirectCode, "Redirect", req.location.redirectAddress);
+			return makeResponse(req, server, req.location.redirectCode, "Redirect", req.location.redirectAddress);
 		}
 	}
 
 	if (!validPath)
-		return makeResponse(server, 404, "Not found", "");
+		return makeResponse(req, server, 404, "Not found", "");
 	if (!isMethodAllowed(req.location.allowMethod, req.method))
-		return methodNotAllowedResponse(server);
+		return methodNotAllowedResponse(req, server);
 
 	if (cgiO.isCgiPath(req, server))
 		return cgiO.handleCGI(req, server);
@@ -43,7 +43,7 @@ std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
 	else if (req.method == "DELETE")
 		return handleDelete(req, server);
 	else
-		return methodNotAllowedResponse(server);
+		return methodNotAllowedResponse(req, server);
 }
 
 

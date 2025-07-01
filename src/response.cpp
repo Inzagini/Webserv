@@ -13,18 +13,18 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath.size() > 12 &&
 		req.requestPath.substr(req.requestPath.size() - 12) == "/delete.html")
-		return makeResponse(server, 200, generateUploadsListPage(server, req.location), "");
+		return makeResponse(req, server, 200, generateUploadsListPage(server, req.location), "text/html");
 
 	std::ifstream	fileContent(filePath.c_str());
 	if (!fileContent)
-		return makeResponse(server, 404, bodyStr, "");
+		return makeResponse(req, server, 404, bodyStr, "");
 	else{
 		std::ostringstream	body;
 		body << fileContent.rdbuf();
 		bodyStr = body.str();
 		fileContent.close();
 	}
-	return makeResponse(server, 200, bodyStr, "");
+	return makeResponse(req, server, 200, bodyStr, "text/html");
 }
 
 /*
@@ -39,7 +39,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (checkContentSize(req, server)){
 		msg << "Size of content is bigger than allowed" << std::endl;
 		logPrint("WARN", msg.str());
-		return makeResponse(server, 413, "Size of content is bigger than allowed", "");
+		return makeResponse(req, server, 413, "Size of content is bigger than allowed", "text/html");
 	}
 
 	std::string::size_type filenamePos = req.body.find("filename=\"");
@@ -61,7 +61,7 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 		if (mkdir(("." + savePath).c_str(), 0755) != 0) {
 			msg << "Failed to create directory: " << "." + savePath << std::endl;
 			logPrint("ERROR", msg.str());
-			return makeResponse(server, 500, "Failed to create upload directory", "");
+			return makeResponse(req, server, 500, "Failed to create upload directory", "text/html");
 		}
 	}
 	std::string	filePath = "." + savePath + "/" + filename;
@@ -69,13 +69,13 @@ std::string	handlePost(const HttpRequest &req, const ServerConfig &server){
 	if (filePath.empty()){
 		msg << "Failed to save file\n";
 		logPrint("WARN", msg.str());
-		return makeResponse(server, 404, "Failed to save file", "");
+		return makeResponse(req, server, 404, "Failed to save file", "");
 	}
 
 	if (writeToFile(req, filePath) == true)
-		return makeResponse(server, 200, "File uploaded successfully", "");
+		return makeResponse(req, server, 200, "File uploaded successfully", "text/html");
 	else
-		return makeResponse(server, 500,  "Failed to save file", "");
+		return makeResponse(req, server, 500,  "Failed to save file", "text/html");
 
 }
 
@@ -97,41 +97,51 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 	if (stat(filePath.c_str(), &st) != 0){
 		msg << "File not found\n";
 		logPrint("WARN", msg.str());
-		return makeResponse(server, 404, "File doesn't exist", "");
+		return makeResponse(req, server, 404, "File doesn't exist", "");
 	}
 
 	if (remove(filePath.c_str()) != 0) {
 		msg << "Fail to delete file: " << filePath << std::endl;
 		logPrint("ERROR", msg.str());
-		return makeResponse(server, 500, "Failed to delete the file", "");
+		return makeResponse(req, server, 500, "Failed to delete the file", "");
 	}
-	return makeResponse(server, 200, "OK", "");
+	return makeResponse(req, server, 200, "OK", "");
 }
 
 //will and a static page later
-std::string methodNotAllowedResponse(const ServerConfig &server) {
+std::string methodNotAllowedResponse(const HttpRequest &req, const ServerConfig &server) {
 	std::ostringstream	msg;
 	msg << "Client requested with not allowed method\n";
 	logPrint("INFO", msg.str());
-	return makeResponse(server, 405, " Method Not Allowed", "");
+	return makeResponse(req, server, 405, " Method Not Allowed", "");
 }
 
-std::string makeResponse(const ServerConfig &server, int statusCode, std::string bodyStr, std::string contentTypeOrRedirect) {
+std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int statusCode, std::string bodyStr, std::string contentTypeOrRedirect) {
  	std::ostringstream response;
 	std::ostringstream msg;
 
- 	response << "HTTP/1.1 " << statusCode << " ";
- 	response << server.httpStatusMsg.find(statusCode)->second << "\r\n";
+ 	msg << "Server responded " << statusCode << " ";
+	if (statusCode < 300){
+		msg << std::endl;
+		logPrint("INFO", msg.str());
+	}
+	else if (statusCode >= 300 && statusCode < 400){
+		msg << "client redirected to " << contentTypeOrRedirect << std::endl;
+ 	 	logPrint("INFO", msg.str());
+	}
+	else {
+		msg << bodyStr << std::endl;
+		logPrint("ERROR", msg.str());
+	}
 
- 	msg << "Server responded " << statusCode;
+	response << "HTTP/1.1 " << statusCode << " ";
+ 	response << server.httpStatusMsg.find(statusCode)->second << "\r\n";
 
  	if (statusCode >= 300 && statusCode < 400) {
  	 	response << "Location: " << contentTypeOrRedirect << "\r\n"
  	 	 	 	 << "Content-Length: 0\r\n"
  	 	 	 	 << "Connection: close\r\n"
  	 	 	 	 << "\r\n";
- 	 	msg << " client redirected to " << contentTypeOrRedirect << std::endl;
- 	 	logPrint("INFO", msg.str());
  	 	return response.str();
  	}
 
@@ -144,14 +154,16 @@ std::string makeResponse(const ServerConfig &server, int statusCode, std::string
 
  	response << "Content-Length: " << bodyStr.size() << "\r\n";
  	response << "Content-Type: " << contentTypeOrRedirect << "\r\n";
- 	response << "Connection: close\r\n";
+
+	std::string connectionType = "close";
+	std::map<std::string, std::string>::const_iterator it = req.headers.find("Connection");
+	if (it != req.headers.end()){
+		connectionType = trim(it->second);
+	}
+ 	response << "Connection: " + connectionType + "\r\n";
  	response << "\r\n";
 
  	response << bodyStr;
-
- 	msg << std::endl;
- 	logPrint("INFO", msg.str());
-
  	return response.str();
 }
 

@@ -1,5 +1,9 @@
 import os
 
+print ("Status: 200 OK")
+print ("Content-Type: text/html")
+print ()
+
 print ("""
 <!DOCTYPE html>
 <html lang="en">

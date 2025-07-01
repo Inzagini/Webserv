@@ -41,7 +41,7 @@ test_endpoint GET "/index.html" 200
 test_endpoint GET "/uploads.html" 200
 test_endpoint GET "/nonexistent.html" 404
 
-# POST
+# # POST
 test_endpoint POST "/cat.png" 200 "./cat.png"
 test_endpoint POST "/upload" 200 "./cat.png"
 test_endpoint POST "/uploads" 404 "./cat.png"
@@ -60,7 +60,7 @@ test_endpoint GET "/cgi/cgiGET.py" 200
 test_endpoint GET "/cgi/cgiGET.py?name=test&num=42" 200
 test_endpoint POST "/cgi/cgiPOST.py" 200 "./cat.png"
 
-test_endpoint GET "/cgi/infillop.py" 500
+test_endpoint GET "/cgi/infiloop.py" 500
 test_endpoint GET "/cgi/syntaxerr.py" 500
 
 
