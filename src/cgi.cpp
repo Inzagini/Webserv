@@ -47,7 +47,7 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	if (executor(req, response) == -1)
 		return makeResponse(req, server, 500, "CGI executor fail", "");
 	else
-		return this->makeCGIResponse(req, server, response);
+		return this->createCGIResponse(req, server, response);
 }
 
 int	cgi::executor(const HttpRequest &req, std::string &response){
@@ -155,18 +155,22 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, std::string &response){
 	return 1;
 }
 
-std::string	cgi::makeCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response){
+std::string	cgi::createCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response){
 	std::ostringstream oss;
 	size_t	headerEnd = response.find("\r\n\r\n");
 	if (headerEnd == std::string::npos){
 		headerEnd = response.find("\n\n");
-		if (headerEnd == std::string::npos)
+		if (headerEnd == std::string::npos){
+			logPrint("ERROR", "CGI script did not provide proper headers\n");
 			return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
+		}
 	}
 
 	std::string headers = response.substr(0, headerEnd);
-	if (headers.find("Content-Type:") == std::string::npos)
+	if (headers.find("Content-Type:") == std::string::npos){
+		logPrint("ERROR", "CGI script missing required headers\n");
 		return makeResponse(req, server, 500, "CGI script missing required headers", "");
+	}
 
 	std::string statusLine = "200 OK";
 	std::string body = response.substr(headerEnd + 3);
@@ -176,8 +180,6 @@ std::string	cgi::makeCGIResponse(const HttpRequest &req, const ServerConfig &ser
 		size_t statusEnd = response.find("\n", statusStart);
 		if (statusEnd == std::string::npos)
 			statusEnd = response.find("\r\n", statusStart);
-
-		std::cout << headers << std::endl;
 		statusLine = response.substr(statusStart, statusEnd - statusStart);
 
 		if (headers[statusEnd] == '\n')
@@ -186,7 +188,7 @@ std::string	cgi::makeCGIResponse(const HttpRequest &req, const ServerConfig &ser
 			headers.erase(statusPos, statusEnd + 2);
 	}
 	oss << "HTTP/1.1 " + statusLine + "\n";
-	oss << "Connection: keep-alive\r\n";
+	oss << "Connection: close\r\n";
 	oss << "Content-Length: " << response.size() << "\r\n";
 	oss << headers + "\r\n";
 	oss << "\r\n";

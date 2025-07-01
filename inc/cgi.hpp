@@ -28,7 +28,7 @@ class	cgi{
 
 	private:
 		int		readFromPipe(pid_t pid, time_t startTime, std::string &response);
-		std::string	makeCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response);
+		std::string	createCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response);
 
 	public:
 		~cgi();

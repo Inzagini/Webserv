@@ -129,6 +129,10 @@ std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int
 		msg << "client redirected to " << contentTypeOrRedirect << std::endl;
  	 	logPrint("INFO", msg.str());
 	}
+	else if (statusCode >= 400 && statusCode < 500){
+		msg << std::endl;
+ 	 	logPrint("WARN", msg.str());
+	}
 	else {
 		msg << bodyStr << std::endl;
 		logPrint("ERROR", msg.str());
@@ -160,7 +164,7 @@ std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int
 	if (it != req.headers.end()){
 		connectionType = trim(it->second);
 	}
- 	response << "Connection: " + connectionType + "\r\n";
+ 	response << "Connection: " << connectionType << "\r\n";
  	response << "\r\n";
 
  	response << bodyStr;

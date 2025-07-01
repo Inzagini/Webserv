@@ -70,8 +70,8 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 	std::ostringstream	msg;
 
 	if (path.empty()){
-		msg << "using default error" << std::endl;
-		logPrint("INFO", msg.str());
+		msg << "No error file - Using default error" << std::endl;
+		logPrint("WARN", msg.str());
 		bodyStr = "<html><body><h1> Error: " + errMsg + "</h1></body></html>";
 		return bodyStr;
 	}

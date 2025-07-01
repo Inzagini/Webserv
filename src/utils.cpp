@@ -12,7 +12,14 @@ void	logPrint(std::string type, std::string msg){
 			<< std::setw(2) << std::setfill('0') << localTime->tm_min << "-"
 			<< std::setw(2) << std::setfill('0') << localTime->tm_sec
 			<< "] ";
-	std::cout << "[" << type << "]\t";
+
+	std::string color;
+	if (type == "INFO") color = CCYAN;
+	else if (type == "WARN") color = CYELLOW;
+	else if (type == "ERROR") color = CRED;
+	else color = CRESET;
+	std::cout << color << "[" << type << "]\t" << CRESET;
+
 	std::cout << msg;
 }
 
