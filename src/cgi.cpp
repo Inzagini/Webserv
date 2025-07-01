@@ -157,9 +157,11 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, std::string &response){
 
 std::string	cgi::createCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response){
 	std::ostringstream oss;
-	size_t	headerEnd = response.find("\r\n\r\n");
+	size_t	headerEnd = response.find("\n\n");
+	size_t	seperatorLen = 2;
 	if (headerEnd == std::string::npos){
-		headerEnd = response.find("\n\n");
+		headerEnd = response.find("\r\n\r\n");
+		seperatorLen = 4;
 		if (headerEnd == std::string::npos){
 			logPrint("ERROR", "CGI script did not provide proper headers\n");
 			return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
@@ -173,26 +175,37 @@ std::string	cgi::createCGIResponse(const HttpRequest &req, const ServerConfig &s
 	}
 
 	std::string statusLine = "200 OK";
-	std::string body = response.substr(headerEnd + 3);
+	std::string body = response.substr(headerEnd + seperatorLen);
 	size_t	statusPos = response.find("Status:");
 	if (statusPos != std::string::npos){
 		size_t statusStart = statusPos + 7;
-		size_t statusEnd = response.find("\n", statusStart);
+		size_t statusEnd = response.find("\r\n", statusStart);
 		if (statusEnd == std::string::npos)
-			statusEnd = response.find("\r\n", statusStart);
-		statusLine = response.substr(statusStart, statusEnd - statusStart);
+			statusEnd = response.find("\n", statusStart);
+		statusLine = trim(response.substr(statusStart, statusEnd - statusStart));
 
 		if (headers[statusEnd] == '\n')
-			headers.erase(statusPos, statusEnd + 1);
+			headers.erase(statusPos, statusEnd + 1 - statusPos);
 		else if (headers.substr(statusEnd, 2) == "\r\n")
-			headers.erase(statusPos, statusEnd + 2);
+			headers.erase(statusPos, statusEnd + 2 - statusPos);
 	}
 	oss << "HTTP/1.1 " + statusLine + "\n";
 	oss << "Connection: close\r\n";
-	oss << "Content-Length: " << response.size() << "\r\n";
-	oss << headers + "\r\n";
-	oss << "\r\n";
-	oss << body;
+	oss << "Content-Length: " << body.size() << "\r\n";
+
+	std::istringstream headerStream(headers);
+	std::string line;
+	while (std::getline(headerStream, line)) {
+		if (!line.empty() && line[line.length()-1] == '\r')
+			line.erase(line.length()-1);
+		if (!line.empty())
+			oss << line << "\r\n";
+	}
+	oss << "\r\n" << body;
+
+	std::ostringstream msg;
+	msg << "Server responded " << statusLine << std::endl;
+	logPrint("INFO", msg.str());
 	return oss.str();
 }
 
