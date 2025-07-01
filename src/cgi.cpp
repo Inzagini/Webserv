@@ -32,93 +32,55 @@ bool	cgi::isCgiPath(const HttpRequest &req, const ServerConfig &server){
 
 std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 	std::string	response = "";
-	int			inFd[2];
-	int			outFd[2];
 	struct stat	st;
 
 	if (stat(this->fullPath.c_str(), &st) != 0)
 		return makeResponse(req, server, 404, "Not found", "");
 
-	if (pipe(inFd) < 0)
+	if (pipe(this->inFd) < 0)
 		return makeResponse(req, server, 500, "Failed to create Pipe", "");
-	if (pipe(outFd) < 0){
-		close(inFd[1]); close(inFd[0]);
+	if (pipe(this->outFd) < 0){
+		close(this->inFd[1]); close(this->inFd[0]);
 		return makeResponse(req, server, 500, "Failed to create Pipe", "");
 	}
 
-	if (executor(req, inFd, outFd, response) == -1)
+	if (executor(req, response) == -1)
 		return makeResponse(req, server, 500, "CGI executor fail", "");
-	else {
-		std::ostringstream oss;
-		size_t	headerEnd = response.find("\r\n\r\n");
-		if (headerEnd == std::string::npos){
-			headerEnd = response.find("\n\n");
-			if (headerEnd == std::string::npos)
-				return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
-		}
-
-		std::string headers = response.substr(0, headerEnd);
-		if (headers.find("Content-Type:") == std::string::npos)
-			return makeResponse(req, server, 500, "CGI script missing required headers", "");
-
-		std::string statusLine = "200 OK";
-		std::string body = response.substr(headerEnd + 3);
-		size_t	statusPos = response.find("Status:");
-		if (statusPos != std::string::npos){
-			size_t statusStart = statusPos + 7;
-			size_t statusEnd = response.find("\n", statusStart);
-			if (statusEnd == std::string::npos)
-				statusEnd = response.find("\r\n", statusStart);
-
-			std::cout << headers << std::endl;
-			statusLine = response.substr(statusStart, statusEnd - statusStart);
-
-			if (headers[statusEnd] == '\n')
-				headers.erase(statusPos, statusEnd + 1);
-			else if (headers.substr(statusEnd, 2) == "\r\n")
-				headers.erase(statusPos, statusEnd + 2);
-		}
-		oss << "HTTP/1.1 " + statusLine + "\n";
-		oss << "Connection: keep-alive\r\n";
-		oss << "Content-Length: " << body.size() << "\r\n";
-		oss << headers + "\r\n";
-		oss << "\r\n";
-		oss << body;
-		return oss.str();
-	}
+	else
+		return this->makeCGIResponse(req, server, response);
 }
 
-int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string &response){
+int	cgi::executor(const HttpRequest &req, std::string &response){
 	pid_t pid = fork();
 	if (pid < 0){
-		close(inFd[1]); close(inFd[0]);
-		close(outFd[1]); close(outFd[0]);
+		close(this->inFd[1]); close(this->inFd[0]);
+		close(this->outFd[1]); close(this->outFd[0]);
 		return -1;
 	}
 	if (pid == 0){
 		if (req.method == "POST" && req.body.size() > 0)
-			dup2(inFd[0], STDIN_FILENO);
-		dup2(outFd[1], STDOUT_FILENO);
-		close(inFd[0]); close(inFd[1]);
-		close(outFd[1]); close(outFd[0]);
+			dup2(this->inFd[0], STDIN_FILENO);
+		dup2(this->outFd[1], STDOUT_FILENO);
+		close(this->inFd[0]); close(this->inFd[1]);
+		close(this->outFd[1]); close(this->outFd[0]);
 
 		char *args[] = { (char*)"/usr/bin/python3", const_cast<char *>(this->fullPath.c_str()), NULL};
 		execve(args[0], args, const_cast<char* const*>(&env[0]));
 		exit(1);
 	}
-	close(inFd[0]); close(outFd[1]);
+	close(this->inFd[0]); close(this->outFd[1]);
 	if (req.method == "POST" && req.body.size() > 0){
 		if (write(inFd[1], req.body.c_str(), req.body.size()) != (ssize_t)req.body.size())
 			return -1;
 	}
-	close(inFd[1]);
+	close(this->inFd[1]);
 
 	time_t		startTime = time(NULL);
 
-	if (this->readFromPipe(pid, startTime, outFd, response) == -1)
-		return (close(outFd[0]), -1);
+	if (this->readFromPipe(pid, startTime, response) == -1)
+		return (close(this->outFd[0]), -1);
 
-	close(outFd[0]);
+	close(this->outFd[0]);
 
 	pid_t	result;
 	int		status;
@@ -149,7 +111,7 @@ int	cgi::executor(const HttpRequest &req, int inFd[2], int outFd[2], std::string
 	return 1;
 }
 
-int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &response){
+int	cgi::readFromPipe(pid_t pid, time_t startTime, std::string &response){
 	char		buffer[4096];
 	ssize_t		len;
 	fd_set		readfds;
@@ -157,7 +119,7 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &re
 
 	while (true){
 		if (time(NULL) - startTime >= CGI_TIMEOUT) {
-			close(outFd[0]);
+			close(this->outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
 			return -1;
@@ -169,7 +131,7 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &re
 
 		int select_result = select(outFd[0] + 1, &readfds, NULL, NULL, &timeout);
 		if (select_result == -1) {
-			close(outFd[0]);
+			close(this->outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
 			return -1;
@@ -183,7 +145,7 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &re
 			else if (len == 0)
 				break; // EOF reached
 			else {
-				close(outFd[0]); // read error
+				close(this->outFd[0]); // read error
 				kill(pid, SIGKILL);
 				waitpid(pid, NULL, 0);
 				return -1;
@@ -191,6 +153,45 @@ int	cgi::readFromPipe(pid_t pid, time_t startTime, int outFd[2], std::string &re
 		}
 	}
 	return 1;
+}
+
+std::string	cgi::makeCGIResponse(const HttpRequest &req, const ServerConfig &server, std::string &response){
+	std::ostringstream oss;
+	size_t	headerEnd = response.find("\r\n\r\n");
+	if (headerEnd == std::string::npos){
+		headerEnd = response.find("\n\n");
+		if (headerEnd == std::string::npos)
+			return makeResponse(req, server, 500, "CGI script did not provide proper headers", "");
+	}
+
+	std::string headers = response.substr(0, headerEnd);
+	if (headers.find("Content-Type:") == std::string::npos)
+		return makeResponse(req, server, 500, "CGI script missing required headers", "");
+
+	std::string statusLine = "200 OK";
+	std::string body = response.substr(headerEnd + 3);
+	size_t	statusPos = response.find("Status:");
+	if (statusPos != std::string::npos){
+		size_t statusStart = statusPos + 7;
+		size_t statusEnd = response.find("\n", statusStart);
+		if (statusEnd == std::string::npos)
+			statusEnd = response.find("\r\n", statusStart);
+
+		std::cout << headers << std::endl;
+		statusLine = response.substr(statusStart, statusEnd - statusStart);
+
+		if (headers[statusEnd] == '\n')
+			headers.erase(statusPos, statusEnd + 1);
+		else if (headers.substr(statusEnd, 2) == "\r\n")
+			headers.erase(statusPos, statusEnd + 2);
+	}
+	oss << "HTTP/1.1 " + statusLine + "\n";
+	oss << "Connection: keep-alive\r\n";
+	oss << "Content-Length: " << response.size() << "\r\n";
+	oss << headers + "\r\n";
+	oss << "\r\n";
+	oss << body;
+	return oss.str();
 }
 
 cgi::~cgi(){
