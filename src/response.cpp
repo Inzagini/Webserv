@@ -6,8 +6,16 @@ std::string	handleGet(const HttpRequest &req, const ServerConfig &server){
 
 	if (req.requestPath == "/")
 		filePath = filePath + req.requestPath + server.index;
-	else if (req.requestPath == req.path && req.location.index != "")
-		filePath = filePath + "/" + req.location.index;
+	else if (req.requestPath == req.path && isDirectory("." + req.location.uploadStore)){
+
+		if (hasDirectoryReadPermission("." + req.location.uploadStore) == false)
+			return makeResponse(req, server, 403, "Folder - Permision denied", "text/html");
+
+		if (req.location.index != "")
+			filePath = filePath + "/" + req.location.index;
+		else
+			return genereateDirectoryListing(server, req);
+	}
 	else
 		filePath += req.requestPath;
 
@@ -110,10 +118,7 @@ std::string	handleDelete(const HttpRequest &req, const ServerConfig &server){
 
 //will and a static page later
 std::string methodNotAllowedResponse(const HttpRequest &req, const ServerConfig &server) {
-	std::ostringstream	msg;
-	msg << "Client requested with not allowed method\n";
-	logPrint("INFO", msg.str());
-	return makeResponse(req, server, 405, " Method Not Allowed", "");
+	return makeResponse(req, server, 405, "Client requested with not allowed method", "");
 }
 
 std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int statusCode, std::string bodyStr, std::string contentTypeOrRedirect) {
@@ -130,7 +135,7 @@ std::string makeResponse(const HttpRequest &req, const ServerConfig &server, int
  	 	logPrint("INFO", msg.str());
 	}
 	else if (statusCode >= 400 && statusCode < 500){
-		msg << std::endl;
+		msg << bodyStr << std::endl;
  	 	logPrint("WARN", msg.str());
 	}
 	else {

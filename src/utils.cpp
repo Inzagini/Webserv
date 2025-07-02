@@ -102,3 +102,61 @@ std::string generateUploadsListPage(const ServerConfig &server, const LocationCo
 	html << "</body></html>";
 	return html.str();
 }
+
+std::string	genereateDirectoryListing(const ServerConfig &server, const HttpRequest &req){
+	std::ostringstream html;
+
+	html << "<!DOCTYPE html><html><head><title>Index of " << req.requestPath << "</title></head>";
+	html << "<body><h1>Index of " << req.requestPath << "</h1><hr>";
+	html << "<table><tr><th>Name</th><th>Size</th></tr>";
+
+	std::string dirPath = "." + req.location.uploadStore;
+
+	DIR *dir = opendir(dirPath.c_str());
+	if (dir){
+		struct dirent *entry;
+		bool hasFile = false;
+		while ((entry = readdir(dir)) != NULL) {
+			std::string fname = entry->d_name;
+			if (fname == ".") continue;
+			std::string fullPath = dirPath + "/" + fname;
+			struct stat fileStat;
+
+			html << "<tr><td>";
+			if (fname == "..") {
+			    html << "<a href=\"../\">" << fname << "/</a>";
+			} else if (stat(fullPath.c_str(), &fileStat) == 0) {
+			    if (S_ISDIR(fileStat.st_mode)) {
+			        html << "<a href=\"" << fname << "/\">" << fname << "/</a>";
+			    } else {
+			        html << "<a href=\"" << fname << "\">" << fname << "</a>";
+			    }
+			    html << "</td><td>" << fileStat.st_size << "</td>";
+			} else {
+			    html << fname << "</td><td>-</td>";
+			}
+			html << "</tr>";
+			hasFile = true;
+
+		}
+		if (!hasFile)
+			html << "<tr><td colspan='2'>No files uploaded.</td></tr>";
+		closedir(dir);
+	}
+	else
+		return makeResponse(req, server, 404, "Folder not found", "");
+	html << "</table><hr></body></html>";
+	return makeResponse(req, server, 200, html.str(), "text/html");
+}
+
+bool	isDirectory(const std::string &path){
+	struct stat pathStat;
+	if (stat(path.c_str(), &pathStat) == 0){
+		return S_ISDIR(pathStat.st_mode);
+	}
+	return false;
+}
+
+bool hasDirectoryReadPermission(const std::string& path) {
+	return access(path.c_str(), R_OK) == 0;
+}

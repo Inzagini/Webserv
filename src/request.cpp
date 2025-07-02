@@ -1,12 +1,13 @@
 #include "request.hpp"
 
-
-std::string	handleRequest(HttpRequest &req, const ServerConfig &server)
-{
+std::string	handleRequest(HttpRequest &req, const ServerConfig &server){
 	cgi			cgiO;
 	bool		validPath = false;
 	std::string	bodyStr;
 	std::string	path = req.path;
+
+	if (isValidHTTPMethod(req.method) == false)
+		return makeResponse(req, server, 400, "Bad Request - Invalid HTTP Method", "text/html");
 
 	if (path.size() > 1 && path[path.size() - 1] == '/')
 		path = path.erase(path.size() - 1);
@@ -92,6 +93,9 @@ std::string	ErrorContent(ServerConfig server, int errorCode, std::string errMsg)
 	return bodyStr;
 }
 
-
+bool	isValidHTTPMethod(const std::string &method){
+	return (method == "GET" || method == "POST" || method == "DELETE" ||
+			method == "PUT" || method == "HEAD" || method == "OPTION");
+}
 
 

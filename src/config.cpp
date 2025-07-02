@@ -68,14 +68,14 @@ int	Config::parseServerBlock(std::istream &file, ServerConfig &server){
 		std::vector<std::string> tokens = tokenize(line, ';');
 		if (tokens.empty()) continue;
 
-		if (tokens[0] == "location" && tokens.size() > 1){
+		if (tokens[0] == "location" && tokens.size() == 3 && tokens[2] == "{"){
 			LocationConfig loc;
 			loc.path = tokens[1];
 			this->initLocationBlock(loc);
 			this->parseLocationBlock(file, loc);
 			server.locations.push_back(loc);
 		}
-		else if (tokens[0] == "listen" && tokens.size() > 1){
+		else if (tokens[0] == "listen" && tokens.size() == 2){
 			size_t colon = tokens[1].find(':');
 			if (colon == std::string::npos)
 				throw std::runtime_error("Missing ':' in " + tokens[1]);
@@ -120,8 +120,12 @@ int	Config::parseLocationBlock(std::istream &file, LocationConfig &loc){
 		if (tokens.empty()) continue;
 
 		if (tokens[0] == "allow_method") {
-			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
-				loc.allowMethod.push_back(*it);
+			for (std::vector<std::string>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it){
+				if (isValidHTTPMethod(*it))
+					loc.allowMethod.push_back(*it);
+				else
+					throw std::runtime_error("Invalid HTTP Method");
+			}
 		}
 		else if(tokens[0] == "index" && tokens.size() == 2){
 			loc.index = tokens[1];

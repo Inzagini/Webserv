@@ -7,6 +7,7 @@
 #include <string>
 #include <dirent.h>
 #include "config.hpp"
+#include "request.hpp"
 
 # define CRESET		"\033[0m"
 # define CRED		"\033[1;31m"
@@ -17,8 +18,12 @@
 # define CCYAN		"\033[1;36m"
 # define CGREY		"\033[90m"
 
+struct HttpRequest;
 
 void	logPrint(std::string type, std::string msg);
+bool	isDirectory(const std::string &path);
+bool	hasDirectoryReadPermission(const std::string& path);
+std::string	genereateDirectoryListing(const ServerConfig &server, const HttpRequest &req);
 std::string generateUploadsListPage(const ServerConfig &server, const LocationConfig &location);
 
 #endif

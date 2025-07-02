@@ -68,5 +68,5 @@ class Config
 };
 
 std::string	trim(const std::string& s);
-void		printTokens(const std::vector<std::string>& tokens); //to delete
+bool		isValidHTTPMethod(const std::string &method);
 #endif

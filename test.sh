@@ -62,6 +62,7 @@ test_endpoint POST "/cgi/cgiPOST.py" 200 "./cat.png"
 
 test_endpoint GET "/cgi/infiloop.py" 500
 test_endpoint GET "/cgi/syntaxerr.py" 500
+test_endpoint GET "/cgi/missContentType.py" 500
 
 
 # Invalid Method
