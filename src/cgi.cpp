@@ -43,6 +43,11 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 		close(this->inFd[1]); close(this->inFd[0]);
 		return makeResponse(req, server, 500, "Failed to create Pipe", "");
 	}
+	if (pipe(this->errFd) < 0){
+		close(this->inFd[1]); close(this->inFd[0]);
+		close(this->outFd[1]); close(this->outFd[0]);
+		return makeResponse(req, server, 500, "Failed to create Pipe", "");
+	}
 
 	if (executor(req, response) == -1)
 		return makeResponse(req, server, 500, "CGI executor fail", "");
@@ -55,14 +60,17 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 	if (pid < 0){
 		close(this->inFd[1]); close(this->inFd[0]);
 		close(this->outFd[1]); close(this->outFd[0]);
+		close(this->errFd[1]); close(this->errFd[0]);
 		return -1;
 	}
 	if (pid == 0){
 		if (req.method == "POST" && req.body.size() > 0)
 			dup2(this->inFd[0], STDIN_FILENO);
 		dup2(this->outFd[1], STDOUT_FILENO);
+		dup2(this->outFd[1], STDERR_FILENO);
 		close(this->inFd[0]); close(this->inFd[1]);
 		close(this->outFd[1]); close(this->outFd[0]);
+		close(this->errFd[1]); close(this->errFd[0]);
 
 		char *args[] = { (char*)"/usr/bin/python3", const_cast<char *>(this->fullPath.c_str()), NULL};
 		execve(args[0], args, const_cast<char* const*>(&env[0]));
@@ -74,6 +82,7 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 			return -1;
 	}
 	close(this->inFd[1]);
+	close(this->errFd[1]); close(this->errFd[0]);
 
 	time_t		startTime = time(NULL);
 
