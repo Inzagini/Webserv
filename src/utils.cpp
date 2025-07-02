@@ -124,16 +124,16 @@ std::string	genereateDirectoryListing(const ServerConfig &server, const HttpRequ
 
 			html << "<tr><td>";
 			if (fname == "..") {
-			    html << "<a href=\"../\">" << fname << "/</a>";
+				html << "<a href=\"../\">" << fname << "/</a>";
 			} else if (stat(fullPath.c_str(), &fileStat) == 0) {
-			    if (S_ISDIR(fileStat.st_mode)) {
-			        html << "<a href=\"" << fname << "/\">" << fname << "/</a>";
-			    } else {
-			        html << "<a href=\"" << fname << "\">" << fname << "</a>";
-			    }
-			    html << "</td><td>" << fileStat.st_size << "</td>";
+				if (S_ISDIR(fileStat.st_mode)) {
+					html << "<a href=\"" << fname << "/\">" << fname << "/</a>";
+				} else {
+					html << "<a href=\"" << fname << "\">" << fname << "</a>";
+				}
+				html << "</td><td>" << fileStat.st_size << "</td>";
 			} else {
-			    html << fname << "</td><td>-</td>";
+				html << fname << "</td><td>-</td>";
 			}
 			html << "</tr>";
 			hasFile = true;
