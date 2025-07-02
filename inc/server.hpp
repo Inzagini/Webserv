@@ -15,6 +15,12 @@
 
 struct HttpRequest;
 
+enum ClientState{
+	READING,
+	PREPARE_RESPONSE,
+	SEND_RESPONSE
+};
+
 class Server
 {
 	private:
@@ -24,6 +30,7 @@ class Server
 		std::map<int, bool>			headerParsed;
 		std::map<int, size_t>		expectedBodyLen;
 		std::map<int, HttpRequest>	parsedRequest;
+		std::map<int, ClientState>	clientState;
 		std::map<int, std::vector<ServerConfig> >	serverFdToConfig;
 		std::map<int, std::vector<ServerConfig> >	clientFdToConfig;
 		std::map<int, std::string> responseQueue;
@@ -39,6 +46,7 @@ class Server
 		void	headerParser(int clientFd);
 		void	clientDisconnect(int clientFD, int i);
 		void	prepareResponse(int clientFD);
+		void	cleanClientData(int clientFD);
 };
 
 int	setSocket(ServerConfig &server);

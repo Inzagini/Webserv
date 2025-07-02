@@ -57,7 +57,6 @@ int	setSocket(ServerConfig &server)
 	call the request parsing
 	depend on result of request parse then server the correct webpage
 */
-
 int Server::connectionHandle() {
 	while (true) {
 		int pollCount = poll(fds.data(), fds.size(), -1);
@@ -67,11 +66,10 @@ int Server::connectionHandle() {
 		for (size_t i = 0; i < fds.size(); ++i) {
 			int fd = fds[i].fd;
 
-			// Handle read (POLLIN)
 			if (fds[i].revents & POLLIN) {
-				if (this->isServerCheck(fd)) {
+				if (this->isServerCheck(fd))
 					this->clientHandle(fd); // Accept new client
-				} else {
+				else {
 					char buffer[4096];
 					ssize_t bytesRead = recv(fd, buffer, sizeof(buffer), 0);
 					if (bytesRead > 0) {
@@ -79,33 +77,33 @@ int Server::connectionHandle() {
 						if (!headerParsed[fd])
 							this->headerParser(fd);
 						if (buffers[fd].size() >= expectedBodyLen[fd]) {
-							prepareResponse(fd); // Prepares and queues response
-							fds[i].events |= POLLOUT; // Mark for write
+							clientState[fd] = PREPARE_RESPONSE;
+							fds[i].events |= POLLOUT;
 						}
-					} else {
+					}
+					else {
 						this->clientDisconnect(fd, i);
 						--i;
 					}
 				}
 			}
-
-			// Handle write (POLLOUT)
 			else if (fds[i].revents & POLLOUT) {
-				if (responseQueue.find(fd) != responseQueue.end()) {
-					const std::string& response = responseQueue[fd];
-					ssize_t bytesSent = send(fd, response.c_str(), response.length(), 0);
-					if (bytesSent <= 0) {
-						this->clientDisconnect(fd, i);
-						--i;
-						continue;
+				if (clientState[fd] == PREPARE_RESPONSE){
+					this->prepareResponse(fd);
+					clientState[fd] = SEND_RESPONSE;
+				}
+				else if (clientState[fd] == SEND_RESPONSE){
+					if (responseQueue.find(fd) != responseQueue.end()) {
+						const std::string& response = responseQueue[fd];
+						ssize_t bytesSent = send(fd, response.c_str(), response.length(), 0);
+						if (bytesSent <= 0) {
+							this->clientDisconnect(fd, i);
+							--i;
+							continue;
+						}
+						this->cleanClientData(fd);
+						fds[i].events &= ~POLLOUT;
 					}
-					// Reset state after response sent
-					responseQueue.erase(fd);
-					buffers.erase(fd); // was: buffers[fd].clear(); ← this is safer
-					headerParsed.erase(fd);
-					expectedBodyLen.erase(fd);
-					parsedRequest.erase(fd);
-					fds[i].events &= ~POLLOUT;
 				}
 			}
 		}
@@ -214,10 +212,7 @@ void	Server::clientDisconnect(int clientFd, int i){
 	msg << "Client: " << clientFd << " disconneted" << std::endl;
 	logPrint("INFO", msg.str());
 	fds.erase(fds.begin() + i);
-	buffers.erase(clientFd);
-	headerParsed.erase(clientFd);
-	expectedBodyLen.erase(clientFd);
-	parsedRequest.erase(clientFd);
+	this->cleanClientData(clientFd);
 	close(clientFd);
 }
 
@@ -228,6 +223,16 @@ bool	Server::isServerCheck(int fd){
 	}
 	return false;
 }
+
+void	Server::cleanClientData(int clientFd){
+	responseQueue.erase(clientFd);
+	buffers.erase(clientFd);
+	headerParsed.erase(clientFd);
+	expectedBodyLen.erase(clientFd);
+	parsedRequest.erase(clientFd);
+	clientState.erase(clientFd);
+}
+
 
 Server::~Server(){
 	for (size_t i = 0; i < serverFds.size(); i++){
