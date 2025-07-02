@@ -43,6 +43,11 @@ std::string	cgi::handleCGI(const HttpRequest &req, const ServerConfig &server){
 		close(this->inFd[1]); close(this->inFd[0]);
 		return makeResponse(req, server, 500, "Failed to create Pipe", "");
 	}
+	if (pipe(this->errFd) < 0){
+		close(this->inFd[1]); close(this->inFd[0]);
+		close(this->outFd[1]); close(this->outFd[0]);
+		return makeResponse(req, server, 500, "Failed to create Pipe", "");
+	}
 
 	if (executor(req, response) == -1)
 		return makeResponse(req, server, 500, "CGI executor fail", "");
@@ -55,14 +60,17 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 	if (pid < 0){
 		close(this->inFd[1]); close(this->inFd[0]);
 		close(this->outFd[1]); close(this->outFd[0]);
+		close(this->errFd[1]); close(this->errFd[0]);
 		return -1;
 	}
 	if (pid == 0){
 		if (req.method == "POST" && req.body.size() > 0)
 			dup2(this->inFd[0], STDIN_FILENO);
 		dup2(this->outFd[1], STDOUT_FILENO);
+		dup2(this->outFd[1], STDERR_FILENO);
 		close(this->inFd[0]); close(this->inFd[1]);
 		close(this->outFd[1]); close(this->outFd[0]);
+		close(this->errFd[1]); close(this->errFd[0]);
 
 		char *args[] = { (char*)"/usr/bin/python3", const_cast<char *>(this->fullPath.c_str()), NULL};
 		execve(args[0], args, const_cast<char* const*>(&env[0]));
@@ -74,6 +82,7 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 			return -1;
 	}
 	close(this->inFd[1]);
+	close(this->errFd[1]); close(this->errFd[0]);
 
 	time_t		startTime = time(NULL);
 
@@ -84,6 +93,7 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 
 	pid_t	result;
 	int		status;
+	std::ostringstream	msg;
 	while (time(NULL) - startTime < CGI_TIMEOUT) {
 		result = waitpid(pid, &status, WNOHANG);
 		if (result > 0)
@@ -97,31 +107,40 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 	if (result == 0) {
 		kill(pid, SIGKILL);
 		waitpid(pid, NULL, 0);
+		msg << "CGI process timed out" <<std::endl;
+		logPrint("ERRO", msg.str());
 		return -1;
 	}
 
 	if (WIFEXITED(status)) {
-		if (WEXITSTATUS(status) != 0)
+		if (WEXITSTATUS(status) != 0){
+			msg << "Child process returned " << WEXITSTATUS(status) <<std::endl;
+			logPrint("WARN", msg.str());
 			return -1;
+		}
 	}
 	else if (WIFSIGNALED(status)){
+		msg << "Child process stopped by signal " << WTERMSIG(status) <<std::endl;
+		logPrint("WARN", msg.str());
 		return -1;
 	}
-
 	return 1;
 }
 
 int	cgi::readFromPipe(pid_t pid, time_t startTime, std::string &response){
-	char		buffer[4096];
-	ssize_t		len;
-	fd_set		readfds;
-	struct		timeval timeout;
+	char				buffer[4096];
+	ssize_t				len;
+	fd_set				readfds;
+	struct		timeval	timeout;
+	std::ostringstream	msg;
 
 	while (true){
 		if (time(NULL) - startTime >= CGI_TIMEOUT) {
 			close(this->outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
+			msg << "CGI process timed out" <<std::endl;
+			logPrint("ERRO", msg.str());
 			return -1;
 		}
 		FD_ZERO(&readfds);
