@@ -84,6 +84,7 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 
 	pid_t	result;
 	int		status;
+	std::ostringstream	msg;
 	while (time(NULL) - startTime < CGI_TIMEOUT) {
 		result = waitpid(pid, &status, WNOHANG);
 		if (result > 0)
@@ -97,31 +98,40 @@ int	cgi::executor(const HttpRequest &req, std::string &response){
 	if (result == 0) {
 		kill(pid, SIGKILL);
 		waitpid(pid, NULL, 0);
+		msg << "CGI process timed out" <<std::endl;
+		logPrint("ERRO", msg.str());
 		return -1;
 	}
 
 	if (WIFEXITED(status)) {
-		if (WEXITSTATUS(status) != 0)
+		if (WEXITSTATUS(status) != 0){
+			msg << "Child process returned " << WEXITSTATUS(status) <<std::endl;
+			logPrint("WARN", msg.str());
 			return -1;
+		}
 	}
 	else if (WIFSIGNALED(status)){
+		msg << "Child process stopped by signal " << WTERMSIG(status) <<std::endl;
+		logPrint("WARN", msg.str());
 		return -1;
 	}
-
 	return 1;
 }
 
 int	cgi::readFromPipe(pid_t pid, time_t startTime, std::string &response){
-	char		buffer[4096];
-	ssize_t		len;
-	fd_set		readfds;
-	struct		timeval timeout;
+	char				buffer[4096];
+	ssize_t				len;
+	fd_set				readfds;
+	struct		timeval	timeout;
+	std::ostringstream	msg;
 
 	while (true){
 		if (time(NULL) - startTime >= CGI_TIMEOUT) {
 			close(this->outFd[0]);
 			kill(pid, SIGKILL);
 			waitpid(pid, NULL, 0);
+			msg << "CGI process timed out" <<std::endl;
+			logPrint("ERRO", msg.str());
 			return -1;
 		}
 		FD_ZERO(&readfds);
