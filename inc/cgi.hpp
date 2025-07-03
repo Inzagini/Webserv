@@ -24,7 +24,7 @@ class	cgi{
 	private:
 		std::vector<const char *>	env;
 		std::string					fullPath;
-		int					inFd[2], outFd[2], errFd[2];
+		int							inFd[2], outFd[2], errFd[2];
 
 	private:
 		int		readFromPipe(pid_t pid, time_t startTime, std::string &response);

@@ -147,22 +147,17 @@ void	Server::setServerFd(Config conf){
 		std::ostringstream oss;
 		oss << conf.getServer()[i].listenIP << ":" << conf.getServer()[i].listenPort;
 
-		std::map<std::string, int>::iterator it = ipPortMap.find(oss.str());
-		if (it != ipPortMap.end())
-			serverFD = it->second;
-		else{
-			serverFD = setSocket(conf.getServer()[i]);
-			ipPortMap[oss.str()] = serverFD;
+		serverFD = setSocket(conf.getServer()[i]);
+		ipPortMap[oss.str()] = serverFD;
 
-			if (serverFD < 0)
-				continue;
-			serverFds.push_back(serverFD);
-			struct pollfd pfd;
-			pfd.fd = serverFD;
-			pfd.events = POLLIN;
-			pfd.revents = 0;
-			fds.push_back(pfd);
-		}
+		if (serverFD < 0)
+			continue;
+		serverFds.push_back(serverFD);
+		struct pollfd pfd;
+		pfd.fd = serverFD;
+		pfd.events = POLLIN;
+		pfd.revents = 0;
+		fds.push_back(pfd);
 		serverFdToConfig[serverFD].push_back(conf.getServer()[i]);
 	}
 }
