@@ -106,4 +106,4 @@ This project is for educational purposes as part of the 42 School curriculum.
 
 <p align="center">
   <em>42 Webserv &copy; 2025</em>
-</p>Webserv
+</p>
