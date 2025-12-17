@@ -94,7 +94,7 @@ This will use `curl` to test endpoints, methods, and features.
 
 ## 👤 Authors
 
-- Inzagini (and team, if applicable)
+- Inzagini
 
 ---
 
